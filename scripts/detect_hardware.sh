@@ -10,46 +10,46 @@ REPORT="../detected_hardware.txt"
 
 detect_mac_hardware() {
     log_section "macOS Hardware Detection"
-    
+
     {
         echo "=== System ==="
-        system_profiler SPHardwareDataType | grep -E "Model|Processor|Memory|Graphics"
-        
+        system_profiler SPHardwareDataType | grep -E "Model|Processor|Memory|Graphics" || echo "No system info found"
+
         echo -e "\n=== GPU ==="
-        system_profiler SPDisplaysDataType | grep -E "Chipset|VRAM"
-        
+        system_profiler SPDisplaysDataType | grep -E "Chipset|VRAM" || echo "No GPU info found"
+
         echo -e "\n=== USB Devices ==="
-        system_profiler SPUSBDataType | grep -E "Product ID|Manufacturer" | head -20
-        
+        system_profiler SPUSBDataType | grep -E "Product ID|Manufacturer" | head -20 || echo "No USB devices found"
+
         echo -e "\n=== Audio ==="
-        system_profiler SPAudioDataType | grep "Device Name"
-        
+        system_profiler SPAudioDataType | grep "Device Name" || echo "No audio devices found"
+
     } > "$REPORT"
-    
+
     log_success "Hardware report: $REPORT"
 }
 
 detect_linux_hardware() {
     log_section "Linux Hardware Detection"
-    
+
     {
         echo "=== CPU ==="
-        lscpu | head -15
-        
+        lscpu | head -15 || echo "No CPU info available"
+
         echo -e "\n=== GPU ==="
-        lspci | grep -i vga
+        lspci | grep -i vga || echo "No GPU detected"
         if command_exists nvidia-smi; then
             nvidia-smi
         fi
-        
+
         echo -e "\n=== USB ==="
-        lsusb | head -20
-        
+        lsusb | head -20 || echo "No USB devices found"
+
         echo -e "\n=== Memory ==="
-        free -h
-        
+        free -h || echo "No memory info available"
+
     } > "$REPORT"
-    
+
     log_success "Hardware report: $REPORT"
 }
 
