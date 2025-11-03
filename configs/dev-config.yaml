@@ -1,0 +1,133 @@
+# Development Tools Configuration
+# Settings for development environment and tools
+
+development_environment:
+  default_shell: bash
+  terminal: iterm2
+  editor: cursor
+  package_managers:
+    - homebrew
+    - npm
+    - pip
+    - cargo
+    - go
+
+languages:
+  python:
+    version: "3.11"
+    virtual_env: virtualenv
+    package_manager: pip
+    global_packages:
+      - ipython
+      - black
+      - pylint
+      - pytest
+      - jupyter
+      - pandas
+      - numpy
+
+  nodejs:
+    version: "20"
+    package_manager: npm
+    global_packages:
+      - typescript
+      - eslint
+      - prettier
+      - nodemon
+      - pm2
+      - yarn
+      - pnpm
+
+  rust:
+    toolchain: stable
+    components:
+      - rustfmt
+      - clippy
+      - rust-analyzer
+      - cargo-edit
+
+  go:
+    version: "1.25"
+    gopath: ~/go
+    packages:
+      - golang.org/x/tools/gopls@latest
+      - github.com/go-delve/delve/cmd/dlv@latest
+
+databases:
+  postgresql:
+    version: "16"
+    port: 5432
+    default_database: postgres
+    enable_extensions:
+      - pgvector
+      - uuid-ossp
+
+  redis:
+    version: "7"
+    port: 6379
+    persistence: true
+    maxmemory: 2gb
+
+  mysql:
+    version: "8"
+    port: 3306
+    root_password: auto_generate
+
+containers:
+  docker:
+    compose_version: "2"
+    buildkit: true
+    default_runtime: runc
+    prune_schedule: weekly
+
+  kubernetes:
+    kubectl_version: latest
+    enable_dashboard: true
+    local_cluster: kind
+
+cloud_tools:
+  aws_cli:
+    version: "2"
+    default_region: us-west-2
+    output_format: json
+
+  gcloud:
+    components:
+      - core
+      - gsutil
+      - bq
+
+  azure_cli:
+    extensions:
+      - azure-devops
+      - ml
+
+ide_settings:
+  vscode:
+    extensions:
+      - ms-python.python
+      - dbaeumer.vscode-eslint
+      - esbenp.prettier-vscode
+      - golang.go
+      - rust-lang.rust-analyzer
+      - ms-vscode-remote.remote-ssh
+      - github.copilot
+
+  cursor:
+    ai_enabled: true
+    theme: dark
+    font_family: "JetBrains Mono"
+
+git:
+  default_branch: main
+  auto_setup_ssh: false
+  global_ignore:
+    - .DS_Store
+    - node_modules
+    - __pycache__
+    - .env
+
+security:
+  ssh_keygen: ed25519
+  gpg_sign_commits: false
+  credential_helper: osxkeychain

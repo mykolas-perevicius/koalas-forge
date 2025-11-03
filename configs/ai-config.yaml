@@ -1,0 +1,57 @@
+# AI Tools Configuration
+# Settings for AI and machine learning applications
+
+ai_models:
+  ollama:
+    models_to_install:
+      - llama3.2:latest
+      - mistral:latest
+      - codellama:latest
+      - phi3:latest
+      - gemma2:2b
+      - deepseek-coder:latest
+      - mixtral:8x7b
+    default_model: llama3.2
+    gpu_layers: auto
+    memory_limit: 8GB
+
+  comfyui:
+    install_models:
+      - stable-diffusion-xl
+      - controlnet
+    vram_allocation: 6GB
+    enable_gpu: true
+
+  text_generation_webui:
+    models_directory: ~/ai-models
+    enable_api: true
+    port: 7860
+
+hardware_optimization:
+  gpu:
+    cuda_version: auto
+    metal_performance_shaders: true  # macOS
+    rocm_version: auto              # AMD GPUs
+
+  cpu:
+    thread_count: auto
+    use_avx2: true
+    use_avx512: false
+
+directories:
+  models: ~/ai-models
+  datasets: ~/ai-datasets
+  checkpoints: ~/ai-checkpoints
+  outputs: ~/ai-outputs
+
+performance:
+  batch_size: auto
+  precision: fp16
+  enable_flash_attention: true
+  offload_to_cpu: false
+
+api_settings:
+  enable_apis: true
+  default_port: 11434
+  allow_remote: false
+  authentication: none
