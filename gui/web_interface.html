@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Speedy App Installer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #0f3460;
+            --text-primary: #ffffff;
+            --text-secondary: #b4b4b4;
+            --accent: #e94560;
+            --success: #4CAF50;
+            --warning: #FFC107;
+            --error: #f44336;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: var(--gradient);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card h2 {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 0.5rem;
+        }
+
+        .install-modes {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .mode-option {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .mode-option:hover {
+            background: rgba(233, 69, 96, 0.1);
+            border-color: var(--accent);
+        }
+
+        .mode-option.selected {
+            background: rgba(233, 69, 96, 0.2);
+            border-color: var(--accent);
+        }
+
+        .mode-option input[type="radio"] {
+            margin-right: 1rem;
+            width: 20px;
+            height: 20px;
+            accent-color: var(--accent);
+        }
+
+        .mode-option .mode-info {
+            flex: 1;
+        }
+
+        .mode-option .mode-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .mode-option .mode-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .system-info {
+            font-family: 'Courier New', monospace;
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .system-info .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .system-info .info-label {
+            color: var(--text-secondary);
+        }
+
+        .system-info .info-value {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+        }
+
+        .package-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg-primary);
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .package-item:hover {
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        .package-item input[type="checkbox"] {
+            margin-right: 0.75rem;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+
+        .package-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .package-category {
+            grid-column: 1 / -1;
+            font-weight: bold;
+            color: var(--accent);
+            margin-top: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+
+        .terminal {
+            background: #0a0a0a;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+
+        .terminal .output-line {
+            margin-bottom: 0.25rem;
+        }
+
+        .terminal .success {
+            color: var(--success);
+        }
+
+        .terminal .error {
+            color: var(--error);
+        }
+
+        .terminal .warning {
+            color: var(--warning);
+        }
+
+        .terminal .info {
+            color: var(--text-secondary);
+        }
+
+        .control-panel {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--accent);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .status-message {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--success);
+            border: 2px solid var(--success);
+        }
+
+        .status-error {
+            background: rgba(244, 67, 54, 0.2);
+            color: var(--error);
+            border: 2px solid var(--error);
+        }
+
+        .status-warning {
+            background: rgba(255, 193, 7, 0.2);
+            color: var(--warning);
+            border: 2px solid var(--warning);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .spinner {
+            border: 3px solid var(--bg-secondary);
+            border-top: 3px solid var(--accent);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c93650;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 Speedy App Installer</h1>
+        <p>Transform your machine into a development powerhouse with AI capabilities</p>
+    </div>
+
+    <div class="container">
+        <div class="dashboard">
+            <!-- Left Panel - Installation Mode -->
+            <div class="card">
+                <h2>📋 Installation Mode</h2>
+                <div class="install-modes">
+                    <div class="mode-option selected" onclick="selectMode(this, 'full')">
+                        <input type="radio" name="mode" value="full" checked>
+                        <div class="mode-info">
+                            <div class="mode-title">🎯 Full Installation</div>
+                            <div class="mode-desc">Complete setup with all tools and applications</div>
+                        </div>
+                    </div>
+                    <div class="mode-option" onclick="selectMode(this, 'ai')">
+                        <input type="radio" name="mode" value="ai">
+                        <div class="mode-info">
+                            <div class="mode-title">🤖 AI/ML Tools</div>
+                            <div class="mode-desc">Ollama, LLMs, and ML frameworks</div>
+                        </div>
+                    </div>
+                    <div class="mode-option" onclick="selectMode(this, 'dev')">
+                        <input type="radio" name="mode" value="dev">
+                        <div class="mode-info">
+                            <div class="mode-title">💻 Development</div>
+                            <div class="mode-desc">IDEs, languages, and dev tools</div>
+                        </div>
+                    </div>
+                    <div class="mode-option" onclick="selectMode(this, 'minimal')">
+                        <input type="radio" name="mode" value="minimal">
+                        <div class="mode-info">
+                            <div class="mode-title">⚡ Minimal</div>
+                            <div class="mode-desc">Essential tools only</div>
+                        </div>
+                    </div>
+                    <div class="mode-option" onclick="selectMode(this, 'custom')">
+                        <input type="radio" name="mode" value="custom">
+                        <div class="mode-info">
+                            <div class="mode-title">🎨 Custom</div>
+                            <div class="mode-desc">Choose individual packages</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 style="margin-top: 2rem;">💻 System Information</h2>
+                <div class="system-info">
+                    <div class="info-row">
+                        <span class="info-label">OS:</span>
+                        <span class="info-value" id="os-info">Detecting...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">CPU:</span>
+                        <span class="info-value" id="cpu-info">Detecting...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">RAM:</span>
+                        <span class="info-value" id="ram-info">Detecting...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">GPU:</span>
+                        <span class="info-value" id="gpu-info">Detecting...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Storage:</span>
+                        <span class="info-value" id="storage-info">Detecting...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel - Package Selection (for custom mode) -->
+            <div class="card" id="packages-panel">
+                <h2>📦 Package Selection</h2>
+                <div id="custom-packages" class="hidden">
+                    <div class="packages-grid" id="packages-list">
+                        <!-- Packages will be loaded here dynamically -->
+                    </div>
+                </div>
+
+                <div id="mode-info" class="mode-details">
+                    <h3>Full Installation Includes:</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value">100+</div>
+                            <div class="stat-label">Applications</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">15+</div>
+                            <div class="stat-label">AI Tools</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">25+</div>
+                            <div class="stat-label">Dev Tools</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">45min</div>
+                            <div class="stat-label">Est. Time</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 style="margin-top: 2rem;">📊 Installation Progress</h2>
+                <div class="terminal" id="output">
+                    <div class="output-line info">Welcome to Speedy App Installer!</div>
+                    <div class="output-line info">Select an installation mode and click "Start Installation" to begin.</div>
+                </div>
+
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress" style="width: 0%">
+                        0%
+                    </div>
+                </div>
+
+                <div class="control-panel">
+                    <button class="btn btn-primary" id="install-btn" onclick="startInstallation()">
+                        🚀 Start Installation
+                    </button>
+                    <button class="btn btn-secondary" id="stop-btn" onclick="stopInstallation()" disabled>
+                        ⏹ Stop
+                    </button>
+                    <button class="btn btn-secondary" onclick="runTests()">
+                        🧪 Run Tests
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearOutput()">
+                        🗑️ Clear
+                    </button>
+                </div>
+
+                <div id="status-message" class="status-message hidden">
+                    <!-- Status messages will appear here -->
+                </div>
+            </div>
+
+            <!-- Right Panel - Quick Actions & Stats -->
+            <div class="card">
+                <h2>⚡ Quick Actions</h2>
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <button class="btn btn-secondary" onclick="detectHardware()">
+                        🔍 Detect Hardware
+                    </button>
+                    <button class="btn btn-secondary" onclick="viewLogs()">
+                        📋 View Logs
+                    </button>
+                    <button class="btn btn-secondary" onclick="openDocs()">
+                        📚 Documentation
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportConfig()">
+                        💾 Export Config
+                    </button>
+                </div>
+
+                <h2 style="margin-top: 2rem;">📈 Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="installed-count">0</div>
+                        <div class="stat-label">Installed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="failed-count">0</div>
+                        <div class="stat-label">Failed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="time-elapsed">00:00</div>
+                        <div class="stat-label">Time</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="disk-used">0GB</div>
+                        <div class="stat-label">Disk Used</div>
+                    </div>
+                </div>
+
+                <h2 style="margin-top: 2rem;">🔄 Recent Activity</h2>
+                <div class="system-info" style="max-height: 200px; overflow-y: auto;">
+                    <div id="activity-log">
+                        <div class="output-line info">System ready</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let selectedMode = 'full';
+        let installationRunning = false;
+        let startTime = null;
+        let installedCount = 0;
+        let failedCount = 0;
+
+        // Initialize on page load
+        window.onload = function() {
+            detectSystemInfo();
+            loadPackages();
+            connectWebSocket();
+        };
+
+        function connectWebSocket() {
+            // Connect to the Python backend WebSocket server
+            try {
+                ws = new WebSocket('ws://localhost:8765');
+
+                ws.onopen = function() {
+                    addOutput('Connected to installer backend', 'success');
+                };
+
+                ws.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    handleMessage(data);
+                };
+
+                ws.onerror = function(error) {
+                    addOutput('Connection error: ' + error, 'error');
+                };
+
+                ws.onclose = function() {
+                    addOutput('Disconnected from backend', 'warning');
+                    // Try to reconnect after 5 seconds
+                    setTimeout(connectWebSocket, 5000);
+                };
+            } catch (error) {
+                console.error('WebSocket error:', error);
+            }
+        }
+
+        function handleMessage(data) {
+            switch (data.type) {
+                case 'output':
+                    addOutput(data.content, data.level || 'info');
+                    break;
+                case 'progress':
+                    updateProgress(data.value);
+                    break;
+                case 'status':
+                    showStatus(data.message, data.level);
+                    break;
+                case 'stats':
+                    updateStats(data);
+                    break;
+                case 'system_info':
+                    updateSystemInfo(data);
+                    break;
+            }
+        }
+
+        function selectMode(element, mode) {
+            // Update selection UI
+            document.querySelectorAll('.mode-option').forEach(opt => {
+                opt.classList.remove('selected');
+                opt.querySelector('input[type="radio"]').checked = false;
+            });
+
+            element.classList.add('selected');
+            element.querySelector('input[type="radio"]').checked = true;
+            selectedMode = mode;
+
+            // Show/hide custom packages
+            if (mode === 'custom') {
+                document.getElementById('custom-packages').classList.remove('hidden');
+                document.getElementById('mode-info').classList.add('hidden');
+            } else {
+                document.getElementById('custom-packages').classList.add('hidden');
+                document.getElementById('mode-info').classList.remove('hidden');
+                updateModeInfo(mode);
+            }
+        }
+
+        function updateModeInfo(mode) {
+            const modeDetails = {
+                'full': {
+                    title: 'Full Installation',
+                    apps: '100+',
+                    ai: '15+',
+                    dev: '25+',
+                    time: '45min'
+                },
+                'ai': {
+                    title: 'AI/ML Tools',
+                    apps: '15+',
+                    ai: '15+',
+                    dev: '0',
+                    time: '20min'
+                },
+                'dev': {
+                    title: 'Development Tools',
+                    apps: '40+',
+                    ai: '0',
+                    dev: '25+',
+                    time: '25min'
+                },
+                'minimal': {
+                    title: 'Minimal Setup',
+                    apps: '10',
+                    ai: '0',
+                    dev: '5',
+                    time: '10min'
+                }
+            };
+
+            const info = modeDetails[mode] || modeDetails['full'];
+            document.getElementById('mode-info').innerHTML = `
+                <h3>${info.title} Includes:</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">${info.apps}</div>
+                        <div class="stat-label">Applications</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${info.ai}</div>
+                        <div class="stat-label">AI Tools</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${info.dev}</div>
+                        <div class="stat-label">Dev Tools</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${info.time}</div>
+                        <div class="stat-label">Est. Time</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadPackages() {
+            // This would normally load from the backend
+            // For now, using sample data
+            const packages = {
+                'AI Tools': [
+                    'Ollama', 'LM Studio', 'GPT4All', 'ComfyUI', 'Text Generation WebUI'
+                ],
+                'Development': [
+                    'VS Code', 'Cursor', 'Neovim', 'Docker', 'Git', 'Python', 'Node.js'
+                ],
+                'Databases': [
+                    'PostgreSQL', 'MySQL', 'Redis', 'MongoDB'
+                ],
+                'Cloud': [
+                    'AWS CLI', 'Google Cloud SDK', 'Azure CLI'
+                ]
+            };
+
+            const packagesList = document.getElementById('packages-list');
+            packagesList.innerHTML = '';
+
+            for (const category in packages) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'package-category';
+                categoryDiv.textContent = category;
+                packagesList.appendChild(categoryDiv);
+
+                packages[category].forEach(pkg => {
+                    const packageDiv = document.createElement('div');
+                    packageDiv.className = 'package-item';
+                    packageDiv.innerHTML = `
+                        <input type="checkbox" id="pkg-${pkg}" checked>
+                        <label for="pkg-${pkg}">${pkg}</label>
+                    `;
+                    packagesList.appendChild(packageDiv);
+                });
+            }
+        }
+
+        function startInstallation() {
+            if (installationRunning) {
+                alert('Installation already in progress!');
+                return;
+            }
+
+            if (!confirm(`Start ${selectedMode} installation? This may take 30-45 minutes.`)) {
+                return;
+            }
+
+            installationRunning = true;
+            startTime = Date.now();
+            installedCount = 0;
+            failedCount = 0;
+
+            document.getElementById('install-btn').disabled = true;
+            document.getElementById('stop-btn').disabled = false;
+
+            clearOutput();
+            addOutput(`Starting ${selectedMode} installation...`, 'info');
+            showStatus('Installation in progress...', 'info');
+
+            // Send installation request to backend
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    action: 'install',
+                    mode: selectedMode,
+                    packages: getSelectedPackages()
+                }));
+            } else {
+                // Fallback: simulate installation
+                simulateInstallation();
+            }
+
+            // Start timer
+            updateTimer();
+        }
+
+        function getSelectedPackages() {
+            if (selectedMode !== 'custom') return [];
+
+            const packages = [];
+            document.querySelectorAll('#packages-list input[type="checkbox"]:checked').forEach(cb => {
+                packages.push(cb.id.replace('pkg-', ''));
+            });
+            return packages;
+        }
+
+        function simulateInstallation() {
+            // Simulate installation progress for demo
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 5;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    completeInstallation(true);
+                }
+                updateProgress(progress);
+
+                // Simulate output
+                if (Math.random() > 0.7) {
+                    const messages = [
+                        'Installing package...',
+                        '✅ Package installed successfully',
+                        'Configuring settings...',
+                        'Downloading dependencies...'
+                    ];
+                    addOutput(messages[Math.floor(Math.random() * messages.length)], 'info');
+                    installedCount++;
+                    updateStats({installed: installedCount, failed: failedCount});
+                }
+            }, 500);
+        }
+
+        function stopInstallation() {
+            if (!confirm('Stop the installation? This may leave your system in an incomplete state.')) {
+                return;
+            }
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({action: 'stop'}));
+            }
+
+            installationRunning = false;
+            document.getElementById('install-btn').disabled = false;
+            document.getElementById('stop-btn').disabled = true;
+
+            addOutput('Installation stopped by user', 'warning');
+            showStatus('Installation cancelled', 'warning');
+        }
+
+        function completeInstallation(success) {
+            installationRunning = false;
+            document.getElementById('install-btn').disabled = false;
+            document.getElementById('stop-btn').disabled = true;
+
+            if (success) {
+                updateProgress(100);
+                addOutput('✅ Installation completed successfully!', 'success');
+                showStatus('Installation completed successfully!', 'success');
+            } else {
+                addOutput('❌ Installation failed!', 'error');
+                showStatus('Installation failed. Check the output for details.', 'error');
+            }
+        }
+
+        function runTests() {
+            clearOutput();
+            addOutput('Running test suite...', 'info');
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({action: 'test'}));
+            } else {
+                addOutput('⚠️ Backend not connected. Cannot run tests.', 'warning');
+            }
+        }
+
+        function detectHardware() {
+            addOutput('Detecting hardware...', 'info');
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({action: 'detect_hardware'}));
+            } else {
+                detectSystemInfo();
+            }
+        }
+
+        function detectSystemInfo() {
+            // Use browser APIs to detect basic info
+            const platform = navigator.platform;
+            const memory = navigator.deviceMemory || 'Unknown';
+            const cores = navigator.hardwareConcurrency || 'Unknown';
+
+            document.getElementById('os-info').textContent = platform;
+            document.getElementById('cpu-info').textContent = `${cores} cores`;
+            document.getElementById('ram-info').textContent = `${memory}GB`;
+
+            // These would come from backend normally
+            document.getElementById('gpu-info').textContent = 'Detecting...';
+            document.getElementById('storage-info').textContent = 'Detecting...';
+        }
+
+        function updateSystemInfo(data) {
+            if (data.os) document.getElementById('os-info').textContent = data.os;
+            if (data.cpu) document.getElementById('cpu-info').textContent = data.cpu;
+            if (data.ram) document.getElementById('ram-info').textContent = data.ram;
+            if (data.gpu) document.getElementById('gpu-info').textContent = data.gpu;
+            if (data.storage) document.getElementById('storage-info').textContent = data.storage;
+        }
+
+        function addOutput(text, level = 'info') {
+            const output = document.getElementById('output');
+            const line = document.createElement('div');
+            line.className = `output-line ${level}`;
+            line.textContent = text;
+            output.appendChild(line);
+            output.scrollTop = output.scrollHeight;
+
+            // Also add to activity log
+            const activity = document.getElementById('activity-log');
+            const activityLine = line.cloneNode(true);
+            activity.insertBefore(activityLine, activity.firstChild);
+            if (activity.children.length > 10) {
+                activity.removeChild(activity.lastChild);
+            }
+        }
+
+        function clearOutput() {
+            document.getElementById('output').innerHTML = '';
+        }
+
+        function updateProgress(value) {
+            const progressBar = document.getElementById('progress');
+            progressBar.style.width = value + '%';
+            progressBar.textContent = Math.round(value) + '%';
+        }
+
+        function showStatus(message, level) {
+            const statusDiv = document.getElementById('status-message');
+            statusDiv.className = `status-message status-${level}`;
+            statusDiv.textContent = message;
+            statusDiv.classList.remove('hidden');
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                statusDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        function updateStats(data) {
+            if (data.installed !== undefined) {
+                document.getElementById('installed-count').textContent = data.installed;
+            }
+            if (data.failed !== undefined) {
+                document.getElementById('failed-count').textContent = data.failed;
+            }
+            if (data.diskUsed !== undefined) {
+                document.getElementById('disk-used').textContent = data.diskUsed + 'GB';
+            }
+        }
+
+        function updateTimer() {
+            if (!installationRunning || !startTime) return;
+
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+
+            document.getElementById('time-elapsed').textContent =
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            setTimeout(updateTimer, 1000);
+        }
+
+        function viewLogs() {
+            window.open('logs/', '_blank');
+        }
+
+        function openDocs() {
+            window.open('README.md', '_blank');
+        }
+
+        function exportConfig() {
+            const config = {
+                mode: selectedMode,
+                packages: getSelectedPackages(),
+                timestamp: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(config, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `installer-config-${Date.now()}.json`;
+            a.click();
+        }
+    </script>
+</body>
+</html>
