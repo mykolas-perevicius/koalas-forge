@@ -136,7 +136,7 @@ echo ""
 echo "🚀 Testing installation simulation..."
 if [[ "$1" == "--full-test" ]]; then
     echo "Running full installation test (this may take time)..."
-    run_test "Minimal install dry-run" "./install.sh --minimal --dry-run"
+    run_test "Minimal install dry-run" "./install.sh --minimal --dry-run --no-sync"
 else
     echo "Skipping full test (use --full-test to enable)"
 fi

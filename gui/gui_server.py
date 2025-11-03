@@ -67,6 +67,8 @@ class InstallerServer:
         self.app.router.add_post('/api/install', self.start_install)
         self.app.router.add_post('/api/stop', self.stop_install)
         self.app.router.add_get('/api/hardware', self.detect_hardware)
+        self.app.router.add_get('/api/terminal-progress', self.get_terminal_progress)
+        self.app.router.add_post('/api/terminal-update', self.terminal_update)
 
     async def index(self, request):
         """Serve the main HTML interface"""
@@ -154,6 +156,33 @@ class InstallerServer:
                 {'error': 'No installation in progress'},
                 status=400
             )
+
+    async def get_terminal_progress(self, request):
+        """Get progress from terminal installation"""
+        try:
+            progress_file = Path('/tmp/app_installer_progress.json')
+            if progress_file.exists():
+                with open(progress_file, 'r') as f:
+                    data = json.load(f)
+                return web.json_response(data)
+            else:
+                return web.json_response({'status': 'idle', 'progress': 0})
+        except Exception as e:
+            logger.error(f"Error reading terminal progress: {e}")
+            return web.json_response({'error': str(e)}, status=500)
+
+    async def terminal_update(self, request):
+        """Receive updates from terminal installation"""
+        try:
+            data = await request.json()
+
+            # Broadcast to all WebSocket clients
+            await self.broadcast(data)
+
+            return web.json_response({'status': 'received'})
+        except Exception as e:
+            logger.error(f"Error processing terminal update: {e}")
+            return web.json_response({'error': str(e)}, status=500)
 
     async def detect_hardware(self, request):
         """Detect system hardware"""

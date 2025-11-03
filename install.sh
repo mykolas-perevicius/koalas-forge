@@ -8,6 +8,17 @@ cd "$SCRIPT_DIR"
 
 source "./scripts/utils.sh"
 
+# Source progress tracking for terminal-GUI sync
+if [[ -f "./scripts/progress_tracker.sh" ]]; then
+    source "./scripts/progress_tracker.sh"
+fi
+if [[ -f "./scripts/websocket_client.sh" ]]; then
+    source "./scripts/websocket_client.sh" 2>/dev/null || true
+fi
+
+# Disable sync flag (can be set to true with --no-sync)
+DISABLE_SYNC=false
+
 # Epic Banner
 echo -e "${CYAN}"
 cat << "BANNER"
@@ -39,6 +50,7 @@ OPERATIONS:
   --drivers           Install drivers
   --optimize          Optimize system
   --dry-run           Test mode - simulate installation without changes
+  --no-sync           Disable GUI synchronization
   --help              Show this help
 
 Examples:
@@ -90,6 +102,10 @@ while [[ $# -gt 0 ]]; do
             DRY_RUN=true
             shift
             ;;
+        --no-sync)
+            DISABLE_SYNC=true
+            shift
+            ;;
         --help|-h)
             show_help
             exit 0
@@ -107,11 +123,41 @@ if [[ -z "$MODE" ]]; then
     MODE="full"
 fi
 
+# Initialize progress tracking if not disabled
+if [[ "$DISABLE_SYNC" != "true" ]] && [[ -f "./scripts/progress_tracker.sh" ]]; then
+    # Check if GUI is running
+    if check_gui_running 2>/dev/null; then
+        log_success "✅ Web GUI detected - progress will sync automatically!"
+        log_info "   View at: http://localhost:8080"
+    else
+        log_info "📊 Progress tracking enabled"
+        log_info "   Start GUI with: ./launch_gui.sh"
+        log_info "   Progress file: /tmp/app_installer_progress.json"
+    fi
+
+    # Initialize progress tracking
+    init_progress "$MODE"
+    update_progress 5 "Starting $MODE installation"
+fi
+
 # Check if dry run mode
 if [[ "$DRY_RUN" == "true" ]]; then
     log_info "🧪 DRY RUN MODE - No actual changes will be made"
+
+    # Update progress for dry run
+    if [[ "$DISABLE_SYNC" != "true" ]] && [[ -f "./scripts/progress_tracker.sh" ]]; then
+        update_progress 10 "Running in dry run mode"
+    fi
+
     source "./scripts/dry_run_test.sh"
     run_dry_run "$MODE"
+
+    # Complete progress for dry run
+    if [[ "$DISABLE_SYNC" != "true" ]] && [[ -f "./scripts/progress_tracker.sh" ]]; then
+        update_progress 100 "Dry run completed"
+        complete_progress "completed"
+    fi
+
     exit 0
 fi
 

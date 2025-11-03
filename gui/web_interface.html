@@ -588,12 +588,14 @@
         let startTime = null;
         let installedCount = 0;
         let failedCount = 0;
+        let terminalSyncActive = false;
 
         // Initialize on page load
         window.onload = function() {
             detectSystemInfo();
             loadPackages();
             connectWebSocket();
+            startTerminalSync();
         };
 
         function connectWebSocket() {
@@ -982,6 +984,100 @@
 
         function openDocs() {
             window.open('README.md', '_blank');
+        }
+
+        // Terminal synchronization
+        function startTerminalSync() {
+            // Poll for terminal progress every 2 seconds
+            setInterval(checkTerminalProgress, 2000);
+        }
+
+        async function checkTerminalProgress() {
+            try {
+                const response = await fetch('/api/terminal-progress');
+                const data = await response.json();
+
+                if (data.status === 'running') {
+                    // Terminal installation is running
+                    if (!terminalSyncActive) {
+                        terminalSyncActive = true;
+                        addOutput('🔄 Terminal installation detected - syncing progress...', 'info');
+                        showTerminalSyncIndicator();
+                    }
+
+                    // Update progress
+                    if (data.progress !== undefined) {
+                        updateProgress(data.progress);
+                    }
+
+                    // Update stats
+                    if (data.stats) {
+                        updateStats({
+                            installed: data.stats.installed,
+                            failed: data.stats.failed,
+                            diskUsed: data.stats.disk_used || 0
+                        });
+                    }
+
+                    // Show current package
+                    if (data.current_package) {
+                        addOutput(`Installing: ${data.current_package}`, 'info');
+                    }
+
+                } else if (terminalSyncActive && data.status !== 'running') {
+                    // Terminal installation completed
+                    terminalSyncActive = false;
+                    hideTerminalSyncIndicator();
+
+                    if (data.status === 'completed') {
+                        addOutput('✅ Terminal installation completed!', 'success');
+                        showStatus('Terminal installation completed successfully', 'success');
+                    } else if (data.status === 'failed') {
+                        addOutput('❌ Terminal installation failed', 'error');
+                        showStatus('Terminal installation failed', 'error');
+                    }
+                }
+            } catch (error) {
+                // Ignore errors - terminal might not be running
+            }
+        }
+
+        function showTerminalSyncIndicator() {
+            // Add sync indicator to UI
+            const indicator = document.createElement('div');
+            indicator.id = 'terminal-sync-indicator';
+            indicator.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 10px 20px;
+                border-radius: 20px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 1000;
+                animation: pulse 2s infinite;
+            `;
+            indicator.innerHTML = '🔄 Terminal Sync Active';
+            document.body.appendChild(indicator);
+
+            // Add pulse animation
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @keyframes pulse {
+                    0% { opacity: 1; }
+                    50% { opacity: 0.7; }
+                    100% { opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        function hideTerminalSyncIndicator() {
+            const indicator = document.getElementById('terminal-sync-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
         }
 
         function exportConfig() {
