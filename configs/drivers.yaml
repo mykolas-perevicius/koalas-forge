@@ -1,0 +1,16 @@
+# Driver Configuration
+
+auto_update:
+  enabled: true
+  
+gpu:
+  nvidia:
+    channel: "game_ready"
+  amd:
+    channel: "recommended"
+    
+peripherals:
+  logitech:
+    install_ghub: true
+  razer:
+    install_synapse: true

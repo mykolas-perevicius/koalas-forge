@@ -1,0 +1,67 @@
+development:
+  - name: git
+    package: git
+  - name: python
+    package: python
+  - name: node
+    package: node
+  - name: docker
+    package: docker
+  - name: vscode
+    package: visual-studio-code
+    cask: true
+  - name: cursor
+    package: cursor
+    cask: true
+  - name: github-desktop
+    package: github
+    cask: true
+  - name: postman
+    package: postman
+    cask: true
+
+gaming:
+  - name: steam
+    package: steam
+    cask: true
+  - name: discord
+    package: discord
+    cask: true
+  - name: obs
+    package: obs
+    cask: true
+
+audio:
+  - name: spotify
+    package: spotify
+    cask: true
+  - name: vlc
+    package: vlc
+    cask: true
+
+productivity:
+  - name: 1password
+    package: 1password
+    cask: true
+  - name: rectangle
+    package: rectangle
+    cask: true
+    mac_only: true
+  - name: iterm2
+    package: iterm2
+    cask: true
+    mac_only: true
+  - name: arc
+    package: arc
+    cask: true
+
+utilities:
+  - name: qbittorrent
+    package: qbittorrent
+    cask: true
+
+windows_only:
+  - name: powertoys
+    package: powertoys
+  - name: windows-terminal
+    package: windows-terminal

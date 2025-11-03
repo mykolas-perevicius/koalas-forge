@@ -1,0 +1,44 @@
+# Logs & temp
+logs/
+*.log
+install_log_*.txt
+*.tmp
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+._*
+
+# Sensitive
+*.key
+*.pem
+*_secret*
+*.env
+.env.*
+
+# AI Models (large files)
+ai-models/*.bin
+ai-models/*.gguf
+ai-models/*.safetensors
+*.ckpt
+*.pth
+
+# Hardware reports
+detected_hardware.*
+benchmark_results/
+
+# Backups
+backup_*.yaml
+*.bak
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/

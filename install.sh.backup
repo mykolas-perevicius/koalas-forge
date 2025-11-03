@@ -1,0 +1,180 @@
+#!/bin/bash
+set -e
+
+LOG_FILE="install_log_$(date +%Y%m%d_%H%M%S).txt"
+FAILED_APPS=()
+CATEGORY=""
+
+log() {
+    echo "$1" | tee -a "$LOG_FILE"
+}
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --minimal)
+            CATEGORY="development"
+            shift
+            ;;
+        --category)
+            CATEGORY="$2"
+            shift 2
+            ;;
+        --verify)
+            VERIFY_MODE=true
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+# Detect OS
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    OS="mac"
+    log "📱 Detected: macOS"
+elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+    OS="windows"
+    log "🪟 Detected: Windows"
+else
+    OS="linux"
+    log "🐧 Detected: Linux"
+fi
+
+# Install Homebrew
+if ! command -v brew &> /dev/null; then
+    log "📦 Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    
+    if [[ "$OS" == "mac" ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ "$OS" == "linux" ]]; then
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    fi
+else
+    log "✅ Homebrew already installed"
+fi
+
+install_app() {
+    local package=$1
+    local name=$2
+    local is_cask=$3
+    
+    # Check if already installed
+    if [[ "$is_cask" == "true" ]]; then
+        if brew list --cask "$package" &>/dev/null; then
+            log "⏭️  $name already installed"
+            return 0
+        fi
+    else
+        if brew list "$package" &>/dev/null; then
+            log "⏭️  $name already installed"
+            return 0
+        fi
+    fi
+    
+    log "📦 Installing $name..."
+    
+    if [[ "$is_cask" == "true" ]]; then
+        if brew install --cask "$package" >> "$LOG_FILE" 2>&1; then
+            log "✅ $name installed"
+        else
+            log "❌ Failed to install $name"
+            FAILED_APPS+=("$name")
+        fi
+    else
+        if brew install "$package" >> "$LOG_FILE" 2>&1; then
+            log "✅ $name installed"
+        else
+            log "❌ Failed to install $name"
+            FAILED_APPS+=("$name")
+        fi
+    fi
+}
+
+# Development tools
+if [[ -z "$CATEGORY" || "$CATEGORY" == "development" ]]; then
+    log "\n💻 Installing development tools..."
+    install_app "git" "Git" "false"
+    install_app "python" "Python" "false"
+    install_app "node" "Node.js" "false"
+    install_app "docker" "Docker" "false"
+    install_app "visual-studio-code" "VSCode" "true"
+    install_app "cursor" "Cursor" "true"
+    install_app "github" "GitHub Desktop" "true"
+    install_app "postman" "Postman" "true"
+fi
+
+# Gaming
+if [[ -z "$CATEGORY" || "$CATEGORY" == "gaming" ]]; then
+    log "\n🎮 Installing gaming apps..."
+    install_app "steam" "Steam" "true"
+    install_app "discord" "Discord" "true"
+    install_app "obs" "OBS" "true"
+fi
+
+# Audio/Media
+if [[ -z "$CATEGORY" || "$CATEGORY" == "audio" || "$CATEGORY" == "media" ]]; then
+    log "\n🎵 Installing audio/media apps..."
+    install_app "spotify" "Spotify" "true"
+    install_app "vlc" "VLC" "true"
+fi
+
+# Productivity
+if [[ -z "$CATEGORY" || "$CATEGORY" == "productivity" ]]; then
+    log "\n⚡ Installing productivity apps..."
+    install_app "1password" "1Password" "true"
+    
+    if [[ "$OS" == "mac" ]]; then
+        install_app "rectangle" "Rectangle" "true"
+        install_app "iterm2" "iTerm2" "true"
+        install_app "arc" "Arc Browser" "true"
+    fi
+fi
+
+# Utilities
+if [[ -z "$CATEGORY" || "$CATEGORY" == "utilities" ]]; then
+    log "\n🔧 Installing utilities..."
+    install_app "qbittorrent" "qBittorrent" "true"
+fi
+
+# Windows-specific
+if [[ "$OS" == "windows" && (-z "$CATEGORY" || "$CATEGORY" == "windows") ]]; then
+    log "\n🪟 Installing Windows apps..."
+    install_app "powertoys" "PowerToys" "false"
+    install_app "windows-terminal" "Windows Terminal" "false"
+fi
+
+
+# Shell configuration
+if [[ "$OS" == "mac" ]]; then
+    log "\n🐚 Configuring shell..."
+    CURRENT_SHELL=$(dscl . -read ~/ UserShell | awk '{print $2}')
+    
+    if [[ "$CURRENT_SHELL" != "/bin/bash" ]]; then
+        log "📝 Setting bash as default shell..."
+        if chsh -s /bin/bash >> "$LOG_FILE" 2>&1; then
+            log "✅ Default shell set to bash (restart terminal to apply)"
+        else
+            log "⚠️  Could not set default shell (may need password)"
+        fi
+    else
+        log "⏭️  Bash already default shell"
+    fi
+fi
+# Summary
+log "\n✨ Installation complete!"
+log "📋 Log saved to: $LOG_FILE"
+
+if [ ${#FAILED_APPS[@]} -gt 0 ]; then
+    log "\n⚠️  Failed to install:"
+    for app in "${FAILED_APPS[@]}"; do
+        log "  - $app"
+    done
+fi
+
+log "\n📚 Usage:"
+log "  ./install.sh                    # Install everything"
+log "  ./install.sh --minimal          # Dev tools only"
+log "  ./install.sh --category gaming  # Specific category"

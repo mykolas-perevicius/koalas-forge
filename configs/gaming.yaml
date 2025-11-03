@@ -1,0 +1,12 @@
+# Gaming Optimizations
+
+windows:
+  disable_game_bar: true
+  power_plan: "high_performance"
+  
+mac:
+  disable_app_nap: true
+  
+linux:
+  install_gamemode: true
+  cpu_governor: "performance"

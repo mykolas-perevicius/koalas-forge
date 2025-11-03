@@ -1,0 +1,344 @@
+# Ultimate App Installer Configuration
+# 100+ applications across all categories
+
+apps:
+  ai_local:
+    - name: "Ollama"
+      package: "ollama"
+      platforms: [mac, linux, windows]
+      install_type: "brew"
+      post_install: |
+        ollama serve &
+        sleep 5
+        ollama pull llama3.2:latest
+        ollama pull mistral:latest
+        ollama pull codellama:latest
+        ollama pull phi3:latest
+        ollama pull gemma2:2b
+      notes: "Local LLM runner with GPU acceleration"
+      priority: high
+      
+    - name: "LM Studio"
+      package: "lm-studio"
+      platforms: [mac, windows]
+      install_type: "cask"
+      notes: "GUI for local LLMs - supports GGUF models"
+      
+    - name: "GPT4All"
+      package: "gpt4all"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      notes: "Privacy-focused local LLM"
+      
+    - name: "Jan"
+      package: "jan"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      notes: "Open-source ChatGPT alternative"
+
+  development_core:
+    - name: "Git"
+      package: "git"
+      platforms: [mac, linux, windows]
+      install_type: "brew"
+      
+    - name: "Python 3.11"
+      package: "python@3.11"
+      platforms: [mac, linux, windows]
+      install_type: "brew"
+      post_install: |
+        pip3 install --upgrade pip
+        pip3 install pipx virtualenv
+      
+    - name: "Node.js"
+      package: "node"
+      platforms: [mac, linux, windows]
+      install_type: "brew"
+      
+    - name: "Rust"
+      package: "rust"
+      platforms: [mac, linux, windows]
+      install_type: "brew"
+      
+    - name: "Go"
+      package: "go"
+      platforms: [mac, linux, windows]
+      install_type: "brew"
+      
+    - name: "Docker"
+      package: "docker"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+
+  development_tools:
+    - name: "Visual Studio Code"
+      package: "visual-studio-code"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "Cursor"
+      package: "cursor"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      priority: high
+      notes: "AI-powered code editor"
+      
+    - name: "Zed"
+      package: "zed"
+      platforms: [mac, linux]
+      install_type: "cask"
+      notes: "High-performance collaborative editor"
+      
+    - name: "Neovim"
+      package: "neovim"
+      platforms: [mac, linux, windows]
+      install_type: "brew"
+      
+    - name: "GitHub Desktop"
+      package: "github"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "Postman"
+      package: "postman"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "Insomnia"
+      package: "insomnia"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "TablePlus"
+      package: "tableplus"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+
+  databases:
+    - name: "PostgreSQL"
+      package: "postgresql@16"
+      platforms: [mac, linux, windows]
+      install_type: "brew"
+      
+    - name: "MySQL"
+      package: "mysql"
+      platforms: [mac, linux, windows]
+      install_type: "brew"
+      
+    - name: "Redis"
+      package: "redis"
+      platforms: [mac, linux, windows]
+      install_type: "brew"
+      
+    - name: "MongoDB Community"
+      package: "mongodb-community"
+      platforms: [mac]
+      install_type: "brew"
+      tap: "mongodb/brew"
+
+  containers:
+    - name: "Kubernetes CLI"
+      package: "kubectl"
+      platforms: [mac, linux, windows]
+      install_type: "brew"
+      
+    - name: "k9s"
+      package: "k9s"
+      platforms: [mac, linux, windows]
+      install_type: "brew"
+      notes: "Terminal UI for Kubernetes"
+      
+    - name: "Helm"
+      package: "helm"
+      platforms: [mac, linux, windows]
+      install_type: "brew"
+
+  cloud_tools:
+    - name: "AWS CLI"
+      package: "awscli"
+      platforms: [mac, linux, windows]
+      install_type: "brew"
+      
+    - name: "Google Cloud SDK"
+      package: "google-cloud-sdk"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "Azure CLI"
+      package: "azure-cli"
+      platforms: [mac, linux, windows]
+      install_type: "brew"
+      
+    - name: "Terraform"
+      package: "terraform"
+      platforms: [mac, linux, windows]
+      install_type: "brew"
+
+  terminal_tools:
+    - name: "iTerm2"
+      package: "iterm2"
+      platforms: [mac]
+      install_type: "cask"
+      
+    - name: "Warp"
+      package: "warp"
+      platforms: [mac]
+      install_type: "cask"
+      notes: "AI-powered terminal"
+      
+    - name: "tmux"
+      package: "tmux"
+      platforms: [mac, linux]
+      install_type: "brew"
+      
+    - name: "htop"
+      package: "htop"
+      platforms: [mac, linux]
+      install_type: "brew"
+      
+    - name: "btop"
+      package: "btop"
+      platforms: [mac, linux]
+      install_type: "brew"
+
+  gaming:
+    - name: "Steam"
+      package: "steam"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "Discord"
+      package: "discord"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "OBS Studio"
+      package: "obs"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+
+  creative:
+    - name: "Blender"
+      package: "blender"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "GIMP"
+      package: "gimp"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "Inkscape"
+      package: "inkscape"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "DaVinci Resolve"
+      package: "davinci-resolve"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+
+  audio:
+    - name: "Spotify"
+      package: "spotify"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "Audacity"
+      package: "audacity"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+
+  security:
+    - name: "1Password"
+      package: "1password"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "Bitwarden"
+      package: "bitwarden"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "NordVPN"
+      package: "nordvpn"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "Wireshark"
+      package: "wireshark"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+
+  productivity:
+    - name: "Obsidian"
+      package: "obsidian"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "Notion"
+      package: "notion"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "Rectangle"
+      package: "rectangle"
+      platforms: [mac]
+      install_type: "cask"
+      notes: "Window management"
+      
+    - name: "Raycast"
+      package: "raycast"
+      platforms: [mac]
+      install_type: "cask"
+      notes: "Spotlight replacement with AI"
+
+  communication:
+    - name: "Slack"
+      package: "slack"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "Zoom"
+      package: "zoom"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "Telegram"
+      package: "telegram"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+
+  browsers:
+    - name: "Google Chrome"
+      package: "google-chrome"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "Firefox"
+      package: "firefox"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "Brave"
+      package: "brave-browser"
+      platforms: [mac, linux, windows]
+      install_type: "cask"
+      
+    - name: "Arc"
+      package: "arc"
+      platforms: [mac]
+      install_type: "cask"
+
+manual_installs:
+  - name: "Windsurf (Codeium)"
+    url: "https://codeium.com/windsurf"
+    platforms: [mac, linux, windows]
+    
+  - name: "ComfyUI"
+    url: "https://github.com/comfyanonymous/ComfyUI"
+    platforms: [mac, linux, windows]
+    
+  - name: "Text Generation WebUI"
+    url: "https://github.com/oobabooga/text-generation-webui"
+    platforms: [mac, linux, windows]
