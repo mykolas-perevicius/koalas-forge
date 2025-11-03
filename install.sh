@@ -38,12 +38,14 @@ OPERATIONS:
   --detect-hardware   Scan hardware
   --drivers           Install drivers
   --optimize          Optimize system
+  --dry-run           Test mode - simulate installation without changes
   --help              Show this help
 
 Examples:
   ./install.sh --full           # Everything
   ./install.sh --ai --optimize  # AI lab setup
   ./install.sh --dev            # Dev tools only
+  ./install.sh --full --dry-run # Test installation without changes
 
 After installation:
   ollama run llama3.2           # Chat with AI
@@ -52,6 +54,7 @@ HELP
 
 # Parse arguments
 MODE=""
+DRY_RUN=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -83,6 +86,10 @@ while [[ $# -gt 0 ]]; do
             MODE="optimize"
             shift
             ;;
+        --dry-run)
+            DRY_RUN=true
+            shift
+            ;;
         --help|-h)
             show_help
             exit 0
@@ -98,6 +105,14 @@ done
 # Default to full
 if [[ -z "$MODE" ]]; then
     MODE="full"
+fi
+
+# Check if dry run mode
+if [[ "$DRY_RUN" == "true" ]]; then
+    log_info "🧪 DRY RUN MODE - No actual changes will be made"
+    source "./scripts/dry_run_test.sh"
+    run_dry_run "$MODE"
+    exit 0
 fi
 
 # Pre-flight checks (skip for detect)

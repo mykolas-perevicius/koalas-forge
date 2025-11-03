@@ -46,11 +46,15 @@ class InstallerServer:
             'startTime': None
         }
 
+        # Get project root (must be before setup_routes)
+        self.project_root = Path(__file__).parent.parent
+
+        # Ensure logs directory exists
+        logs_dir = self.project_root / 'logs'
+        logs_dir.mkdir(exist_ok=True)
+
         # Setup routes
         self.setup_routes()
-
-        # Get project root
-        self.project_root = Path(__file__).parent.parent
 
     def setup_routes(self):
         """Setup HTTP routes"""
@@ -349,7 +353,7 @@ class InstallerServer:
             # Remove disconnected clients
             self.websocket_clients -= disconnected_clients
 
-    async def handle_websocket(self, websocket, path):
+    async def handle_websocket(self, websocket):
         """Handle WebSocket connections"""
         # Add client to set
         self.websocket_clients.add(websocket)
