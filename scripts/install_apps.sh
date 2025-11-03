@@ -31,7 +31,7 @@ install_app() {
             if brew list "$package" &>/dev/null; then
                 log_success "$name already installed"
             else
-                if brew install "$package" &>> "$LOG_FILE"; then
+                if brew install "$package" >> "$LOG_FILE" 2>&1; then
                     log_success "$name installed"
                 else
                     log_error "$name installation failed"
@@ -40,12 +40,12 @@ install_app() {
                 fi
             fi
             ;;
-            
+
         cask)
             if brew list --cask "$package" &>/dev/null; then
                 log_success "$name already installed"
             else
-                if brew install --cask "$package" &>> "$LOG_FILE"; then
+                if brew install --cask "$package" >> "$LOG_FILE" 2>&1; then
                     log_success "$name installed"
                 else
                     log_error "$name installation failed"
