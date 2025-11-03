@@ -36,16 +36,10 @@ simulate_install() {
         sleep 0.3
     done
 
-    # Random success/failure (95% success rate)
-    if [ $((RANDOM % 100)) -lt 95 ]; then
-        echo -e " ${GREEN}✅ Success${NC}"
-        SIMULATED_PACKAGES+=("$package")
-        return 0
-    else
-        echo -e " ${RED}❌ Failed${NC}"
-        SIMULATED_ERRORS+=("$package")
-        return 1
-    fi
+    # Always succeed in dry run for consistent testing
+    echo -e " ${GREEN}✅ Success${NC}"
+    SIMULATED_PACKAGES+=("$package")
+    return 0
 }
 
 # Function to simulate command execution
