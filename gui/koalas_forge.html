@@ -43,6 +43,43 @@
             --border-radius: 12px;
         }
 
+        /* Dark Mode 🌙 */
+        [data-theme="dark"] {
+            /* Dark Nature Palette */
+            --eucalyptus: #4A6F4C;
+            --sky: #2C4A5E;
+            --earth: #5C4A3D;
+            --blossom: #5E3D4A;
+            --bamboo: #3D4A3D;
+            --sunset: #6E4A3D;
+            --lavender: #4A3D5E;
+            --moss: #3D5A3D;
+
+            /* Dark Neutral colors */
+            --bg-primary: #1A1A1A;
+            --bg-secondary: #252525;
+            --bg-card: #2A2A2A;
+            --text-primary: #E8E8E8;
+            --text-secondary: #B8B8B8;
+            --text-muted: #888888;
+
+            /* Dark Semantic colors */
+            --success: #66BB6A;
+            --warning: #FFA726;
+            --error: #EF5350;
+            --info: #42A5F5;
+
+            /* Dark Shadows */
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Theme transition */
+        body, .header, .card, .btn, .modal-content {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, var(--bamboo) 0%, var(--sky) 50%, var(--blossom) 100%);
@@ -97,6 +134,36 @@
             color: var(--text-secondary);
             max-width: 600px;
             margin: 0 auto;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: absolute;
+            top: 1.5rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(15deg);
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .theme-icon {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
         }
 
         /* Mode Toggle */
@@ -662,6 +729,9 @@
 <body>
     <!-- Header -->
     <div class="header">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">
+            <span class="theme-icon">🌙</span>
+        </button>
         <h1>
             <span class="koala-icon">🐨</span>
             Koala's Forge
@@ -948,8 +1018,38 @@
             'data-science': ['python', 'git', 'vscode', 'postgresql'],
         };
 
+        // Theme Management
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+
+            // Update icon
+            const themeIcon = document.querySelector('.theme-icon');
+            themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        }
+
+        function initTheme() {
+            // Check for saved theme preference or default to 'light'
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+
+            document.documentElement.setAttribute('data-theme', theme);
+
+            // Update icon
+            const themeIcon = document.querySelector('.theme-icon');
+            if (themeIcon) {
+                themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+            }
+        }
+
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
             loadApps();
             setupEventListeners();
             checkInstalledApps();
