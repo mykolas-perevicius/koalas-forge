@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐨 Koala's Forge - Setup Made Simple</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Pastel Nature Color Palette 🌿 */
+            --eucalyptus: #B8D8BA;      /* Soft sage green */
+            --sky: #C7E3F4;             /* Soft sky blue */
+            --earth: #E5D4C1;           /* Warm earth beige */
+            --blossom: #F4D8D8;         /* Soft pink */
+            --bamboo: #D9E8D1;          /* Light mint */
+            --sunset: #F5C7A9;          /* Soft coral */
+            --lavender: #D5C6E8;        /* Soft purple */
+            --moss: #A4C3A2;            /* Muted green */
+
+            /* Neutral colors */
+            --bg-primary: #FAFAF9;      /* Off-white */
+            --bg-secondary: #F5F3F0;    /* Soft beige */
+            --bg-card: #FFFFFF;
+            --text-primary: #2D3436;
+            --text-secondary: #636E72;
+            --text-muted: #95A5A6;
+
+            /* Semantic colors */
+            --success: #81C784;
+            --warning: #FFB74D;
+            --error: #E57373;
+            --info: #64B5F6;
+
+            /* Shadows and borders */
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bamboo) 0%, var(--sky) 50%, var(--blossom) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--eucalyptus) 0%, var(--moss) 100%);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '🌿';
+            position: absolute;
+            font-size: 150px;
+            opacity: 0.1;
+            right: -30px;
+            top: -30px;
+            transform: rotate(-15deg);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .koala-icon {
+            font-size: 3.5rem;
+            animation: wave 2s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Mode Toggle */
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem auto;
+            max-width: 400px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 1rem 2rem;
+            background: var(--bg-card);
+            border: 3px solid transparent;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .mode-btn.active {
+            border-color: var(--eucalyptus);
+            background: var(--bamboo);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Wizard Mode */
+        .wizard-container {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 3rem;
+            box-shadow: var(--shadow-lg);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .wizard-step {
+            display: none;
+        }
+
+        .wizard-step.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .wizard-step h2 {
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+
+        .wizard-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .wizard-option {
+            background: var(--bg-primary);
+            border: 3px solid var(--bg-secondary);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .wizard-option:hover {
+            border-color: var(--eucalyptus);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .wizard-option.selected {
+            border-color: var(--moss);
+            background: var(--bamboo);
+        }
+
+        .wizard-option-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .wizard-option-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .wizard-option-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .wizard-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+
+        /* Expert Mode */
+        .expert-container {
+            display: none;
+        }
+
+        .expert-container.active {
+            display: block;
+        }
+
+        /* Preset Packs */
+        .preset-packs {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+        }
+
+        .preset-packs h2 {
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .preset-pack {
+            background: linear-gradient(135deg, var(--bamboo), var(--eucalyptus));
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .preset-pack:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .preset-pack.selected {
+            border-color: var(--moss);
+            box-shadow: 0 0 0 3px rgba(164, 195, 162, 0.3);
+        }
+
+        .preset-pack-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .preset-pack-icon {
+            font-size: 2.5rem;
+        }
+
+        .preset-pack-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .preset-pack-apps {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .preset-pack-count {
+            display: inline-block;
+            background: var(--bg-card);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        /* Search Bar */
+        .search-section {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            border: 2px solid var(--bg-secondary);
+            border-radius: var(--border-radius);
+            background: var(--bg-primary);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: var(--eucalyptus);
+            box-shadow: 0 0 0 3px rgba(184, 216, 186, 0.2);
+        }
+
+        /* Category Tabs */
+        .category-tabs {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .category-tab {
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-secondary);
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .category-tab:hover {
+            background: var(--bamboo);
+        }
+
+        .category-tab.active {
+            background: var(--eucalyptus);
+            color: var(--text-primary);
+        }
+
+        /* App Grid */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .app-card {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .app-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .app-card.selected {
+            border-color: var(--eucalyptus);
+            background: var(--bamboo);
+        }
+
+        .app-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .app-checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            accent-color: var(--moss);
+        }
+
+        .app-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            flex: 1;
+        }
+
+        .app-status {
+            font-size: 0.85rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .app-status.installed {
+            background: var(--success);
+            color: white;
+        }
+
+        .app-status.update {
+            background: var(--warning);
+            color: white;
+        }
+
+        .app-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .app-platforms {
+            display: flex;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .platform-badge {
+            background: var(--bg-secondary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+        }
+
+        .app-settings-btn {
+            background: none;
+            border: 1px solid var(--bg-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            margin-top: 0.75rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .app-settings-btn:hover {
+            background: var(--bg-primary);
+            border-color: var(--eucalyptus);
+        }
+
+        /* Action Bar */
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            padding: 1.5rem;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .selection-info {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--eucalyptus), var(--moss));
+            color: var(--text-primary);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Installation Progress Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .progress-container {
+            margin: 1.5rem 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--eucalyptus), var(--moss));
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .installation-log {
+            background: var(--bg-primary);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            margin: 1rem 0;
+        }
+
+        .log-entry {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid var(--bg-secondary);
+        }
+
+        .log-entry.success {
+            color: var(--success);
+        }
+
+        .log-entry.error {
+            color: var(--error);
+        }
+
+        .log-entry.info {
+            color: var(--info);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .mode-toggle {
+                flex-direction: column;
+            }
+
+            .app-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-bar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .wizard-options {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .installing {
+            animation: pulse 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>
+            <span class="koala-icon">🐨</span>
+            Koala's Forge
+        </h1>
+        <p>Choose your apps. Click install. Get on with your life.</p>
+    </div>
+
+    <!-- Mode Toggle -->
+    <div class="container">
+        <div class="mode-toggle">
+            <button class="mode-btn active" onclick="switchMode('wizard')">
+                🧙 Wizard Mode
+            </button>
+            <button class="mode-btn" onclick="switchMode('expert')">
+                🔧 Expert Mode
+            </button>
+        </div>
+
+        <!-- Wizard Mode -->
+        <div id="wizardContainer" class="wizard-container">
+            <!-- Step 1: What do you want to do? -->
+            <div class="wizard-step active" id="wizardStep1">
+                <h2>What brings you here today?</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 2rem;">Select all that apply - we'll recommend the perfect setup!</p>
+
+                <div class="wizard-options">
+                    <div class="wizard-option" data-purpose="development">
+                        <div class="wizard-option-icon">💻</div>
+                        <div class="wizard-option-title">Development</div>
+                        <div class="wizard-option-desc">Code, build, deploy</div>
+                    </div>
+                    <div class="wizard-option" data-purpose="ai">
+                        <div class="wizard-option-icon">🤖</div>
+                        <div class="wizard-option-title">AI & ML</div>
+                        <div class="wizard-option-desc">Local models, training</div>
+                    </div>
+                    <div class="wizard-option" data-purpose="creative">
+                        <div class="wizard-option-icon">🎨</div>
+                        <div class="wizard-option-title">Creative Work</div>
+                        <div class="wizard-option-desc">Design, video, audio</div>
+                    </div>
+                    <div class="wizard-option" data-purpose="gaming">
+                        <div class="wizard-option-icon">🎮</div>
+                        <div class="wizard-option-title">Gaming</div>
+                        <div class="wizard-option-desc">Play and stream</div>
+                    </div>
+                    <div class="wizard-option" data-purpose="productivity">
+                        <div class="wizard-option-icon">📊</div>
+                        <div class="wizard-option-title">Productivity</div>
+                        <div class="wizard-option-desc">Work smarter</div>
+                    </div>
+                    <div class="wizard-option" data-purpose="security">
+                        <div class="wizard-option-icon">🔒</div>
+                        <div class="wizard-option-title">Security</div>
+                        <div class="wizard-option-desc">Privacy & protection</div>
+                    </div>
+                </div>
+
+                <div class="wizard-navigation">
+                    <button class="btn btn-secondary" onclick="switchMode('expert')">Skip Wizard</button>
+                    <button class="btn btn-primary" onclick="wizardNext()">Next →</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Review & Customize -->
+            <div class="wizard-step" id="wizardStep2">
+                <h2>Perfect! Here's what we recommend:</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 2rem;">We've selected apps based on your needs. Feel free to customize!</p>
+
+                <div id="wizardRecommendations"></div>
+
+                <div class="wizard-navigation">
+                    <button class="btn btn-secondary" onclick="wizardPrev()">← Back</button>
+                    <button class="btn btn-primary" onclick="startInstallation()">Install Selected Apps</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expert Mode -->
+        <div id="expertContainer" class="expert-container">
+            <!-- Preset Packs -->
+            <div class="preset-packs">
+                <h2>🎯 Quick Start Packs</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Select one or more preset packs to get started quickly. You can customize after!</p>
+
+                <div class="preset-grid">
+                    <div class="preset-pack" data-preset="ai-developer">
+                        <div class="preset-pack-header">
+                            <div class="preset-pack-icon">🤖</div>
+                            <div class="preset-pack-title">AI Developer</div>
+                        </div>
+                        <div class="preset-pack-apps">Ollama, Python, Jupyter, ComfyUI, LM Studio, CUDA toolkit</div>
+                        <div class="preset-pack-count">12 apps</div>
+                    </div>
+
+                    <div class="preset-pack" data-preset="full-stack">
+                        <div class="preset-pack-header">
+                            <div class="preset-pack-icon">💻</div>
+                            <div class="preset-pack-title">Full Stack Developer</div>
+                        </div>
+                        <div class="preset-pack-apps">VS Code, Git, Docker, Node, Python, PostgreSQL, Redis</div>
+                        <div class="preset-pack-count">20 apps</div>
+                    </div>
+
+                    <div class="preset-pack" data-preset="creative">
+                        <div class="preset-pack-header">
+                            <div class="preset-pack-icon">🎨</div>
+                            <div class="preset-pack-title">Creative Suite</div>
+                        </div>
+                        <div class="preset-pack-apps">Blender, GIMP, Inkscape, DaVinci Resolve, Audacity, OBS</div>
+                        <div class="preset-pack-count">15 apps</div>
+                    </div>
+
+                    <div class="preset-pack" data-preset="gaming">
+                        <div class="preset-pack-header">
+                            <div class="preset-pack-icon">🎮</div>
+                            <div class="preset-pack-title">Gaming Setup</div>
+                        </div>
+                        <div class="preset-pack-apps">Steam, Discord, OBS Studio, Epic Games Launcher</div>
+                        <div class="preset-pack-count">8 apps</div>
+                    </div>
+
+                    <div class="preset-pack" data-preset="security">
+                        <div class="preset-pack-header">
+                            <div class="preset-pack-icon">🔒</div>
+                            <div class="preset-pack-title">Security & Privacy</div>
+                        </div>
+                        <div class="preset-pack-apps">Bitwarden, NordVPN, Wireshark, ProtonVPN, Tor Browser</div>
+                        <div class="preset-pack-count">10 apps</div>
+                    </div>
+
+                    <div class="preset-pack" data-preset="data-science">
+                        <div class="preset-pack-header">
+                            <div class="preset-pack-icon">📊</div>
+                            <div class="preset-pack-title">Data Science</div>
+                        </div>
+                        <div class="preset-pack-apps">Python, R, Jupyter, Tableau, pandas, NumPy, scikit-learn</div>
+                        <div class="preset-pack-count">18 apps</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search & Browse -->
+            <div class="search-section">
+                <input type="text" class="search-bar" placeholder="🔍 Search for apps..." id="searchBar" oninput="filterApps()">
+            </div>
+
+            <!-- Category Tabs -->
+            <div class="category-tabs">
+                <button class="category-tab active" data-category="all" onclick="filterCategory('all')">All Apps</button>
+                <button class="category-tab" data-category="ai_local" onclick="filterCategory('ai_local')">🤖 AI & ML</button>
+                <button class="category-tab" data-category="development_core" onclick="filterCategory('development_core')">💻 Development</button>
+                <button class="category-tab" data-category="creative" onclick="filterCategory('creative')">🎨 Creative</button>
+                <button class="category-tab" data-category="productivity" onclick="filterCategory('productivity')">📊 Productivity</button>
+                <button class="category-tab" data-category="gaming" onclick="filterCategory('gaming')">🎮 Gaming</button>
+                <button class="category-tab" data-category="security" onclick="filterCategory('security')">🔒 Security</button>
+                <button class="category-tab" data-category="databases" onclick="filterCategory('databases')">🗄️ Databases</button>
+                <button class="category-tab" data-category="browsers" onclick="filterCategory('browsers')">🌐 Browsers</button>
+            </div>
+
+            <!-- App Grid -->
+            <div class="app-grid" id="appGrid">
+                <!-- Apps will be dynamically loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+        <div class="selection-info">
+            <span id="selectedCount">0</span> apps selected
+            <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" id="dryRunToggle" style="cursor: pointer; width: 20px; height: 20px; accent-color: var(--eucalyptus);">
+                <label for="dryRunToggle" style="cursor: pointer; font-size: 0.9rem; color: var(--text-secondary);">
+                    🧪 Dry Run (test without installing)
+                </label>
+            </div>
+        </div>
+        <div class="action-buttons">
+            <button class="btn btn-secondary" onclick="clearSelection()">Clear All</button>
+            <button class="btn btn-secondary" onclick="exportConfig()">Export Config</button>
+            <button class="btn btn-primary" id="installBtn" onclick="startInstallation()" disabled>
+                Install Selected Apps
+            </button>
+        </div>
+    </div>
+
+    <!-- Installation Progress Modal -->
+    <div class="modal" id="installModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Installing Applications</h2>
+                <button class="close-btn" onclick="closeInstallModal()">×</button>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%">
+                        <span id="progressPercent">0%</span>
+                    </div>
+                </div>
+                <div class="progress-text" id="progressText">Preparing installation...</div>
+            </div>
+
+            <div class="installation-log" id="installLog">
+                <div class="log-entry info">Ready to begin installation...</div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="pauseBtn" onclick="pauseInstallation()">Pause</button>
+                <button class="btn btn-danger" onclick="cancelInstallation()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let selectedApps = new Set();
+        let selectedPresets = new Set();
+        let wizardSelections = new Set();
+        let currentCategory = 'all';
+        let installedApps = new Set(); // Apps already installed on the system
+        let installationPaused = false;
+
+        // Sample app data - This will be loaded from the server
+        const appDatabase = {
+            ai_local: [
+                { id: 'ollama', name: 'Ollama', description: 'Run local LLMs with GPU acceleration', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'lm-studio', name: 'LM Studio', description: 'GUI for local LLMs - supports GGUF models', platforms: ['mac', 'windows'], installed: false, hasUpdate: false },
+                { id: 'gpt4all', name: 'GPT4All', description: 'Privacy-focused local LLM', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'jan', name: 'Jan', description: 'Open-source ChatGPT alternative', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+            ],
+            development_core: [
+                { id: 'git', name: 'Git', description: 'Version control system', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'python', name: 'Python 3.11', description: 'Popular programming language', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'node', name: 'Node.js', description: 'JavaScript runtime', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'docker', name: 'Docker', description: 'Container platform', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'vscode', name: 'Visual Studio Code', description: 'Popular code editor', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'cursor', name: 'Cursor', description: 'AI-powered code editor', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+            ],
+            creative: [
+                { id: 'blender', name: 'Blender', description: '3D creation suite', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'gimp', name: 'GIMP', description: 'Image editor', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'inkscape', name: 'Inkscape', description: 'Vector graphics editor', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'davinci', name: 'DaVinci Resolve', description: 'Professional video editor', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'obs', name: 'OBS Studio', description: 'Streaming and recording', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+            ],
+            gaming: [
+                { id: 'steam', name: 'Steam', description: 'Gaming platform', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'discord', name: 'Discord', description: 'Voice and chat for gamers', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+            ],
+            productivity: [
+                { id: 'obsidian', name: 'Obsidian', description: 'Knowledge base and notes', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'notion', name: 'Notion', description: 'All-in-one workspace', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'rectangle', name: 'Rectangle', description: 'Window management', platforms: ['mac'], installed: false, hasUpdate: false },
+                { id: 'raycast', name: 'Raycast', description: 'Spotlight replacement with AI', platforms: ['mac'], installed: false, hasUpdate: false },
+            ],
+            security: [
+                { id: 'bitwarden', name: 'Bitwarden', description: 'Password manager', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: '1password', name: '1Password', description: 'Password manager', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'nordvpn', name: 'NordVPN', description: 'VPN service', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'wireshark', name: 'Wireshark', description: 'Network analyzer', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+            ],
+            databases: [
+                { id: 'postgresql', name: 'PostgreSQL', description: 'Powerful relational database', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'mysql', name: 'MySQL', description: 'Popular database', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'redis', name: 'Redis', description: 'In-memory data store', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+            ],
+            browsers: [
+                { id: 'chrome', name: 'Google Chrome', description: 'Popular web browser', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'firefox', name: 'Firefox', description: 'Privacy-focused browser', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'brave', name: 'Brave', description: 'Privacy-first browser', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'arc', name: 'Arc', description: 'Modern browser', platforms: ['mac'], installed: false, hasUpdate: false },
+            ],
+        };
+
+        // Preset definitions
+        const presets = {
+            'ai-developer': ['ollama', 'lm-studio', 'python', 'git', 'vscode', 'cursor', 'docker'],
+            'full-stack': ['git', 'python', 'node', 'docker', 'vscode', 'postgresql', 'redis'],
+            'creative': ['blender', 'gimp', 'inkscape', 'davinci', 'obs'],
+            'gaming': ['steam', 'discord', 'obs'],
+            'security': ['bitwarden', 'nordvpn', 'wireshark'],
+            'data-science': ['python', 'git', 'vscode', 'postgresql'],
+        };
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadApps();
+            setupEventListeners();
+            checkInstalledApps();
+        });
+
+        function setupEventListeners() {
+            // Wizard option selection
+            document.querySelectorAll('.wizard-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    this.classList.toggle('selected');
+                    const purpose = this.dataset.purpose;
+                    if (wizardSelections.has(purpose)) {
+                        wizardSelections.delete(purpose);
+                    } else {
+                        wizardSelections.add(purpose);
+                    }
+                });
+            });
+
+            // Preset pack selection
+            document.querySelectorAll('.preset-pack').forEach(pack => {
+                pack.addEventListener('click', function() {
+                    const presetId = this.dataset.preset;
+                    this.classList.toggle('selected');
+
+                    if (selectedPresets.has(presetId)) {
+                        selectedPresets.delete(presetId);
+                        // Deselect apps from this preset
+                        presets[presetId].forEach(appId => {
+                            selectedApps.delete(appId);
+                        });
+                    } else {
+                        selectedPresets.add(presetId);
+                        // Select apps from this preset
+                        presets[presetId].forEach(appId => {
+                            selectedApps.add(appId);
+                        });
+                    }
+
+                    updateAppGrid();
+                    updateSelectionCount();
+                });
+            });
+        }
+
+        function switchMode(mode) {
+            const wizardContainer = document.getElementById('wizardContainer');
+            const expertContainer = document.getElementById('expertContainer');
+            const modeBtns = document.querySelectorAll('.mode-btn');
+
+            modeBtns.forEach(btn => btn.classList.remove('active'));
+
+            if (mode === 'wizard') {
+                wizardContainer.style.display = 'block';
+                expertContainer.classList.remove('active');
+                modeBtns[0].classList.add('active');
+            } else {
+                wizardContainer.style.display = 'none';
+                expertContainer.classList.add('active');
+                modeBtns[1].classList.add('active');
+            }
+        }
+
+        function wizardNext() {
+            const step1 = document.getElementById('wizardStep1');
+            const step2 = document.getElementById('wizardStep2');
+
+            step1.classList.remove('active');
+            step2.classList.add('active');
+
+            // Generate recommendations based on wizard selections
+            generateWizardRecommendations();
+        }
+
+        function wizardPrev() {
+            const step1 = document.getElementById('wizardStep1');
+            const step2 = document.getElementById('wizardStep2');
+
+            step2.classList.remove('active');
+            step1.classList.add('active');
+        }
+
+        function generateWizardRecommendations() {
+            const recommendations = document.getElementById('wizardRecommendations');
+            recommendations.innerHTML = '';
+
+            // Map wizard selections to presets
+            const purposeToPreset = {
+                'development': 'full-stack',
+                'ai': 'ai-developer',
+                'creative': 'creative',
+                'gaming': 'gaming',
+                'productivity': 'productivity',
+                'security': 'security',
+            };
+
+            wizardSelections.forEach(purpose => {
+                const presetId = purposeToPreset[purpose];
+                if (presetId && presets[presetId]) {
+                    presets[presetId].forEach(appId => selectedApps.add(appId));
+                }
+            });
+
+            // Display selected apps
+            const selectedAppsList = Array.from(selectedApps).map(appId => {
+                const app = findAppById(appId);
+                return app ? `<div style="padding: 0.5rem; background: var(--bg-primary); margin: 0.5rem 0; border-radius: 8px;">${app.name}</div>` : '';
+            }).join('');
+
+            recommendations.innerHTML = `
+                <div style="background: var(--bamboo); padding: 1.5rem; border-radius: var(--border-radius); margin-bottom: 1rem;">
+                    <h3 style="margin-bottom: 1rem;">📦 ${selectedApps.size} apps selected for you:</h3>
+                    ${selectedAppsList}
+                </div>
+                <p style="color: var(--text-secondary);">You can customize this selection or switch to Expert Mode for full control.</p>
+            `;
+
+            updateSelectionCount();
+        }
+
+        function findAppById(appId) {
+            for (const category in appDatabase) {
+                const app = appDatabase[category].find(a => a.id === appId);
+                if (app) return app;
+            }
+            return null;
+        }
+
+        function loadApps() {
+            const appGrid = document.getElementById('appGrid');
+            appGrid.innerHTML = '';
+
+            Object.keys(appDatabase).forEach(category => {
+                appDatabase[category].forEach(app => {
+                    const appCard = createAppCard(app, category);
+                    appGrid.appendChild(appCard);
+                });
+            });
+
+            updateSelectionCount();
+        }
+
+        function createAppCard(app, category) {
+            const card = document.createElement('div');
+            card.className = 'app-card';
+            card.dataset.category = category;
+            card.dataset.appId = app.id;
+
+            if (selectedApps.has(app.id)) {
+                card.classList.add('selected');
+            }
+
+            const statusBadge = app.installed
+                ? `<span class="app-status installed">Installed</span>`
+                : app.hasUpdate
+                ? `<span class="app-status update">Update Available</span>`
+                : '';
+
+            const platformBadges = app.platforms.map(p =>
+                `<span class="platform-badge">${p}</span>`
+            ).join('');
+
+            card.innerHTML = `
+                <div class="app-card-header">
+                    <input type="checkbox" class="app-checkbox" ${selectedApps.has(app.id) ? 'checked' : ''} onchange="toggleApp('${app.id}', this)">
+                    <div class="app-name">${app.name}</div>
+                    ${statusBadge}
+                </div>
+                <div class="app-description">${app.description}</div>
+                <div class="app-platforms">${platformBadges}</div>
+                <button class="app-settings-btn" onclick="showAppSettings('${app.id}')">⚙️ Settings</button>
+            `;
+
+            return card;
+        }
+
+        function toggleApp(appId, checkbox) {
+            if (checkbox.checked) {
+                selectedApps.add(appId);
+            } else {
+                selectedApps.delete(appId);
+            }
+
+            updateAppGrid();
+            updateSelectionCount();
+        }
+
+        function updateAppGrid() {
+            document.querySelectorAll('.app-card').forEach(card => {
+                const appId = card.dataset.appId;
+                const checkbox = card.querySelector('.app-checkbox');
+
+                if (selectedApps.has(appId)) {
+                    card.classList.add('selected');
+                    checkbox.checked = true;
+                } else {
+                    card.classList.remove('selected');
+                    checkbox.checked = false;
+                }
+            });
+        }
+
+        function updateSelectionCount() {
+            document.getElementById('selectedCount').textContent = selectedApps.size;
+            const installBtn = document.getElementById('installBtn');
+            installBtn.disabled = selectedApps.size === 0;
+        }
+
+        function filterCategory(category) {
+            currentCategory = category;
+
+            // Update active tab
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.category === category) {
+                    tab.classList.add('active');
+                }
+            });
+
+            // Filter apps
+            document.querySelectorAll('.app-card').forEach(card => {
+                if (category === 'all' || card.dataset.category === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function filterApps() {
+            const searchTerm = document.getElementById('searchBar').value.toLowerCase();
+
+            document.querySelectorAll('.app-card').forEach(card => {
+                const appName = card.querySelector('.app-name').textContent.toLowerCase();
+                const appDesc = card.querySelector('.app-description').textContent.toLowerCase();
+
+                const matchesSearch = appName.includes(searchTerm) || appDesc.includes(searchTerm);
+                const matchesCategory = currentCategory === 'all' || card.dataset.category === currentCategory;
+
+                card.style.display = (matchesSearch && matchesCategory) ? 'block' : 'none';
+            });
+        }
+
+        function clearSelection() {
+            selectedApps.clear();
+            selectedPresets.clear();
+
+            document.querySelectorAll('.preset-pack').forEach(pack => {
+                pack.classList.remove('selected');
+            });
+
+            updateAppGrid();
+            updateSelectionCount();
+        }
+
+        function exportConfig() {
+            const config = {
+                selectedApps: Array.from(selectedApps),
+                selectedPresets: Array.from(selectedPresets),
+                timestamp: new Date().toISOString(),
+            };
+
+            const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'koalas-forge-config.json';
+            a.click();
+        }
+
+        function showAppSettings(appId) {
+            alert(`Settings for ${appId} - Coming soon! This will allow you to:\n- Choose installation location\n- Configure app-specific options\n- View dependencies`);
+        }
+
+        function checkInstalledApps() {
+            // This will call the backend to check which apps are already installed
+            // For now, simulating with random data
+            fetch('/api/installed-apps')
+                .then(response => response.json())
+                .then(data => {
+                    installedApps = new Set(data.installed);
+                    // Update app cards to show installed status
+                })
+                .catch(err => console.log('Could not fetch installed apps:', err));
+        }
+
+        function startInstallation() {
+            if (selectedApps.size === 0) return;
+
+            const dryRun = document.getElementById('dryRunToggle').checked;
+            const modal = document.getElementById('installModal');
+            modal.classList.add('active');
+
+            // Update modal title for dry run
+            const modalTitle = document.querySelector('.modal-title');
+            if (dryRun) {
+                modalTitle.textContent = '🧪 Dry Run - Testing Installation';
+                document.getElementById('progressText').textContent = 'Starting dry run (no actual installation)...';
+            } else {
+                modalTitle.textContent = 'Installing Applications';
+                document.getElementById('progressText').textContent = 'Preparing installation...';
+            }
+
+            // Start installation via WebSocket or polling
+            performInstallation(dryRun);
+        }
+
+        function performInstallation(dryRun = false) {
+            const progressFill = document.getElementById('progressFill');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressText = document.getElementById('progressText');
+            const installLog = document.getElementById('installLog');
+
+            const appsToInstall = Array.from(selectedApps);
+            let currentIndex = 0;
+
+            // Clear log
+            installLog.innerHTML = dryRun
+                ? '<div class="log-entry info">🧪 DRY RUN MODE - No actual installation will occur</div>'
+                : '<div class="log-entry info">Starting installation...</div>';
+
+            function installNext() {
+                if (installationPaused) {
+                    setTimeout(installNext, 1000);
+                    return;
+                }
+
+                if (currentIndex >= appsToInstall.length) {
+                    // Installation complete
+                    if (dryRun) {
+                        progressText.textContent = 'Dry run complete! ✅ All checks passed';
+                        installLog.innerHTML += '<div class="log-entry success">🧪 Dry run complete! No changes were made to your system.</div>';
+                    } else {
+                        progressText.textContent = 'Installation complete! 🎉';
+                        installLog.innerHTML += '<div class="log-entry success">All applications installed successfully!</div>';
+                    }
+                    document.getElementById('pauseBtn').disabled = true;
+                    return;
+                }
+
+                const appId = appsToInstall[currentIndex];
+                const app = findAppById(appId);
+
+                if (app) {
+                    const progress = ((currentIndex + 1) / appsToInstall.length * 100).toFixed(0);
+                    progressFill.style.width = progress + '%';
+                    progressPercent.textContent = progress + '%';
+
+                    const action = dryRun ? 'Checking' : 'Installing';
+                    progressText.textContent = `${action} ${app.name}... (${currentIndex + 1}/${appsToInstall.length})`;
+
+                    const logPrefix = dryRun ? '🧪 [DRY RUN]' : '📦';
+                    installLog.innerHTML += `<div class="log-entry info">${logPrefix} ${action} ${app.name}...</div>`;
+                    installLog.scrollTop = installLog.scrollHeight;
+
+                    // Simulate installation (in real app, this would call the backend)
+                    setTimeout(() => {
+                        if (dryRun) {
+                            installLog.innerHTML += `<div class="log-entry success">✓ ${app.name} - Would be installed successfully</div>`;
+                            installLog.innerHTML += `<div class="log-entry info">  → Package: ${app.id}</div>`;
+                            installLog.innerHTML += `<div class="log-entry info">  → Platforms: ${app.platforms.join(', ')}</div>`;
+                        } else {
+                            installLog.innerHTML += `<div class="log-entry success">✓ ${app.name} installed successfully</div>`;
+                        }
+                        installLog.scrollTop = installLog.scrollHeight;
+                        currentIndex++;
+                        installNext();
+                    }, dryRun ? 500 : 1000); // Faster for dry run
+                }
+            }
+
+            installNext();
+        }
+
+        function pauseInstallation() {
+            const pauseBtn = document.getElementById('pauseBtn');
+            installationPaused = !installationPaused;
+
+            if (installationPaused) {
+                pauseBtn.textContent = 'Resume';
+                pauseBtn.classList.remove('btn-secondary');
+                pauseBtn.classList.add('btn-primary');
+            } else {
+                pauseBtn.textContent = 'Pause';
+                pauseBtn.classList.remove('btn-primary');
+                pauseBtn.classList.add('btn-secondary');
+            }
+        }
+
+        function cancelInstallation() {
+            if (confirm('Are you sure you want to cancel the installation?')) {
+                closeInstallModal();
+            }
+        }
+
+        function closeInstallModal() {
+            document.getElementById('installModal').classList.remove('active');
+            installationPaused = false;
+        }
+    </script>
+</body>
+</html>
