@@ -418,6 +418,207 @@
             color: var(--text-primary);
         }
 
+        /* Recommendations Section */
+        .recommendations-section {
+            background: linear-gradient(135deg, var(--eucalyptus) 0%, var(--moss) 100%);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .recommendations-section.visible {
+            display: block;
+        }
+
+        .recommendations-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .recommendations-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .recommendations-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .recommendation-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        [data-theme="dark"] .recommendation-card {
+            background: var(--bg-card);
+        }
+
+        .recommendation-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--eucalyptus);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .recommendation-card.selected {
+            border-color: var(--moss);
+            background: var(--bamboo);
+        }
+
+        .recommendation-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--text-primary);
+        }
+
+        .recommendation-description {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .recommendation-reason {
+            font-size: 0.75rem;
+            color: var(--moss);
+            font-style: italic;
+        }
+
+        /* Profile Management */
+        .profile-btn {
+            background: var(--eucalyptus);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .profile-btn:hover {
+            background: var(--moss);
+            transform: translateY(-2px);
+        }
+
+        .profile-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .profile-modal.visible {
+            display: flex;
+        }
+
+        .profile-modal-content {
+            background: var(--bg-primary);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .profile-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+        }
+
+        .profile-item {
+            background: var(--bg-card);
+            border: 2px solid var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .profile-item:hover {
+            border-color: var(--eucalyptus);
+            transform: translateX(4px);
+        }
+
+        .profile-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-item-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .profile-item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .profile-action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .profile-action-btn:hover {
+            background: var(--bg-secondary);
+        }
+
+        .profile-item-info {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .profile-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .profile-input {
+            padding: 0.75rem;
+            border: 2px solid var(--bg-secondary);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .profile-input:focus {
+            outline: none;
+            border-color: var(--eucalyptus);
+        }
+
         /* App Grid */
         .app-grid {
             display: grid;
@@ -740,9 +941,14 @@
 <body>
     <!-- Header -->
     <div class="header">
-        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">
-            <span class="theme-icon">🌙</span>
-        </button>
+        <div style="position: absolute; top: 1.5rem; right: 1.5rem; display: flex; gap: 1rem;">
+            <button class="profile-btn" onclick="openProfileModal()" title="Manage profiles">
+                📁 Profiles
+            </button>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">
+                <span class="theme-icon">🌙</span>
+            </button>
+        </div>
         <h1>
             <span class="koala-icon">🐨</span>
             Koala's Forge
@@ -890,6 +1096,18 @@
                 <input type="text" class="search-bar" placeholder="🔍 Search for apps..." id="searchBar" oninput="filterApps()">
             </div>
 
+            <!-- Smart Recommendations -->
+            <div class="recommendations-section" id="recommendationsSection">
+                <div class="recommendations-header">
+                    <span style="font-size: 1.5rem;">💡</span>
+                    <div class="recommendations-title">Recommended for You</div>
+                </div>
+                <div class="recommendations-subtitle">Based on your current selection, you might also want:</div>
+                <div class="recommendations-grid" id="recommendationsGrid">
+                    <!-- Recommendations will be dynamically loaded here -->
+                </div>
+            </div>
+
             <!-- Category Tabs -->
             <div class="category-tabs">
                 <button class="category-tab active" data-category="all" onclick="filterCategory('all')">All Apps</button>
@@ -983,6 +1201,33 @@
         </div>
     </div>
 
+    <!-- Profile Management Modal -->
+    <div class="profile-modal" id="profileModal">
+        <div class="profile-modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">📁 Manage Profiles</h2>
+                <button class="close-btn" onclick="closeProfileModal()">×</button>
+            </div>
+
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Save your app selections as profiles for quick setup on new machines.
+            </p>
+
+            <div class="profile-list" id="profileList">
+                <!-- Profiles will be dynamically loaded here -->
+            </div>
+
+            <div class="profile-form">
+                <h3>Save Current Selection</h3>
+                <input type="text" class="profile-input" id="profileName" placeholder="Profile name (e.g., Work Setup, Gaming Rig)">
+                <textarea class="profile-input" id="profileDescription" placeholder="Description (optional)" rows="3"></textarea>
+                <button class="btn profile-btn" onclick="saveProfile()" style="width: 100%;">
+                    💾 Save Profile
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Global state
         let selectedApps = new Set();
@@ -991,6 +1236,7 @@
         let currentCategory = 'all';
         let installedApps = new Set(); // Apps already installed on the system
         let installationPaused = false;
+        let profiles = []; // Saved profiles
 
         // Sample app data - This will be loaded from the server
         const appDatabase = {
@@ -1054,6 +1300,117 @@
             'data-science': ['python', 'git', 'vscode', 'postgresql'],
         };
 
+        // Smart Recommendations Engine
+        const recommendationRules = {
+            // Complementary apps - apps that work well together
+            complementary: {
+                'docker': ['vscode', 'git', 'node', 'python'],
+                'git': ['vscode', 'cursor', 'github-desktop'],
+                'python': ['vscode', 'cursor', 'git', 'docker'],
+                'node': ['vscode', 'git', 'docker', 'postgresql'],
+                'vscode': ['git', 'docker', 'python', 'node'],
+                'cursor': ['git', 'docker', 'python', 'node'],
+                'postgresql': ['docker', 'node', 'python'],
+                'redis': ['docker', 'node', 'python'],
+                'mysql': ['docker', 'node', 'python'],
+                'ollama': ['lm-studio', 'python', 'cursor', 'vscode'],
+                'lm-studio': ['ollama', 'python', 'cursor'],
+                'blender': ['gimp', 'inkscape', 'obs'],
+                'gimp': ['blender', 'inkscape'],
+                'obs': ['discord', 'steam'],
+                'steam': ['discord'],
+                'discord': ['steam', 'obs'],
+            },
+
+            // Dependency suggestions - missing dependencies
+            dependencies: {
+                'docker': { requires: [], suggests: ['git'] },
+                'node': { requires: [], suggests: ['git', 'vscode'] },
+                'python': { requires: [], suggests: ['git', 'vscode'] },
+                'postgresql': { requires: [], suggests: ['docker'] },
+                'redis': { requires: [], suggests: ['docker'] },
+                'mysql': { requires: [], suggests: ['docker'] },
+            },
+
+            // Workflow patterns - common use case combinations
+            workflows: {
+                'web-development': {
+                    apps: ['git', 'node', 'vscode', 'docker', 'postgresql'],
+                    keywords: ['git', 'node', 'vscode']
+                },
+                'ai-development': {
+                    apps: ['python', 'git', 'cursor', 'ollama', 'docker'],
+                    keywords: ['ollama', 'lm-studio', 'python', 'cursor']
+                },
+                'content-creation': {
+                    apps: ['blender', 'gimp', 'davinci', 'obs'],
+                    keywords: ['blender', 'gimp', 'davinci', 'obs']
+                },
+                'gaming': {
+                    apps: ['steam', 'discord', 'obs'],
+                    keywords: ['steam', 'discord']
+                },
+                'data-science': {
+                    apps: ['python', 'git', 'vscode', 'postgresql', 'docker'],
+                    keywords: ['python', 'postgresql', 'redis']
+                }
+            }
+        };
+
+        // Generate smart recommendations based on current selection
+        function generateRecommendations() {
+            const recommendations = new Map(); // appId -> score
+            const selectedArray = Array.from(selectedApps);
+
+            if (selectedArray.length === 0) return [];
+
+            // 1. Complementary app recommendations
+            selectedArray.forEach(appId => {
+                const complements = recommendationRules.complementary[appId] || [];
+                complements.forEach(complementId => {
+                    if (!selectedApps.has(complementId)) {
+                        recommendations.set(complementId, (recommendations.get(complementId) || 0) + 3);
+                    }
+                });
+            });
+
+            // 2. Dependency suggestions
+            selectedArray.forEach(appId => {
+                const deps = recommendationRules.dependencies[appId];
+                if (deps) {
+                    deps.suggests?.forEach(suggestedId => {
+                        if (!selectedApps.has(suggestedId)) {
+                            recommendations.set(suggestedId, (recommendations.get(suggestedId) || 0) + 5);
+                        }
+                    });
+                }
+            });
+
+            // 3. Workflow pattern matching
+            Object.entries(recommendationRules.workflows).forEach(([workflow, data]) => {
+                const matchCount = data.keywords.filter(k => selectedApps.has(k)).length;
+                if (matchCount >= 2) { // At least 2 apps from workflow
+                    data.apps.forEach(appId => {
+                        if (!selectedApps.has(appId)) {
+                            recommendations.set(appId, (recommendations.get(appId) || 0) + matchCount * 2);
+                        }
+                    });
+                }
+            });
+
+            // 4. Convert to sorted array with app details
+            const recommendedApps = Array.from(recommendations.entries())
+                .sort((a, b) => b[1] - a[1]) // Sort by score descending
+                .slice(0, 6) // Top 6 recommendations
+                .map(([appId, score]) => {
+                    const app = findAppById(appId);
+                    return app ? { ...app, score } : null;
+                })
+                .filter(app => app !== null);
+
+            return recommendedApps;
+        }
+
         // Theme Management
         function toggleTheme() {
             const html = document.documentElement;
@@ -1083,9 +1440,171 @@
             }
         }
 
+        // Profile Management
+        function loadProfiles() {
+            const savedProfiles = localStorage.getItem('koalaProfiles');
+            if (savedProfiles) {
+                profiles = JSON.parse(savedProfiles);
+            }
+        }
+
+        function saveProfilesToStorage() {
+            localStorage.setItem('koalaProfiles', JSON.stringify(profiles));
+        }
+
+        function openProfileModal() {
+            const modal = document.getElementById('profileModal');
+            modal.classList.add('visible');
+            renderProfiles();
+        }
+
+        function closeProfileModal() {
+            const modal = document.getElementById('profileModal');
+            modal.classList.remove('visible');
+        }
+
+        function renderProfiles() {
+            const profileList = document.getElementById('profileList');
+
+            if (profiles.length === 0) {
+                profileList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No saved profiles yet. Save your first profile below!</p>';
+                return;
+            }
+
+            profileList.innerHTML = profiles.map((profile, index) => `
+                <div class="profile-item">
+                    <div class="profile-item-header">
+                        <div class="profile-item-name">${profile.name}</div>
+                        <div class="profile-item-actions">
+                            <button class="profile-action-btn" onclick="loadProfile(${index})" title="Load profile">
+                                📂 Load
+                            </button>
+                            <button class="profile-action-btn" onclick="exportProfile(${index})" title="Export profile">
+                                📤 Export
+                            </button>
+                            <button class="profile-action-btn" onclick="deleteProfile(${index})" title="Delete profile">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                    <div class="profile-item-info">
+                        ${profile.description || 'No description'}
+                        <br>
+                        <strong>${profile.apps.length} apps</strong> •
+                        Created ${new Date(profile.created).toLocaleDateString()}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function saveProfile() {
+            const nameInput = document.getElementById('profileName');
+            const descInput = document.getElementById('profileDescription');
+
+            const name = nameInput.value.trim();
+            if (!name) {
+                alert('Please enter a profile name');
+                return;
+            }
+
+            if (selectedApps.size === 0) {
+                alert('Please select at least one app before saving a profile');
+                return;
+            }
+
+            const profile = {
+                name: name,
+                description: descInput.value.trim(),
+                apps: Array.from(selectedApps),
+                presets: Array.from(selectedPresets),
+                created: new Date().toISOString(),
+                updated: new Date().toISOString()
+            };
+
+            profiles.push(profile);
+            saveProfilesToStorage();
+
+            // Clear inputs
+            nameInput.value = '';
+            descInput.value = '';
+
+            // Re-render
+            renderProfiles();
+
+            alert(`Profile "${name}" saved successfully!`);
+        }
+
+        function loadProfile(index) {
+            const profile = profiles[index];
+
+            // Clear current selection
+            selectedApps.clear();
+            selectedPresets.clear();
+
+            // Load profile apps
+            profile.apps.forEach(appId => selectedApps.add(appId));
+            profile.presets.forEach(presetId => selectedPresets.add(presetId));
+
+            // Update UI
+            updateAppGrid();
+            updateSelectionCount();
+
+            closeProfileModal();
+            alert(`Profile "${profile.name}" loaded! (${profile.apps.length} apps selected)`);
+        }
+
+        function exportProfile(index) {
+            const profile = profiles[index];
+            const dataStr = JSON.stringify(profile, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `koala-profile-${profile.name.replace(/\s+/g, '-').toLowerCase()}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+
+            alert(`Profile "${profile.name}" exported!`);
+        }
+
+        function deleteProfile(index) {
+            const profile = profiles[index];
+            if (confirm(`Delete profile "${profile.name}"?`)) {
+                profiles.splice(index, 1);
+                saveProfilesToStorage();
+                renderProfiles();
+            }
+        }
+
+        function importProfile() {
+            // TODO: Implement profile import from file
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const profile = JSON.parse(event.target.result);
+                        profiles.push(profile);
+                        saveProfilesToStorage();
+                        renderProfiles();
+                        alert(`Profile "${profile.name}" imported successfully!`);
+                    } catch (err) {
+                        alert('Invalid profile file');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
             initTheme();
+            loadProfiles();
             loadApps();
             setupEventListeners();
             checkInstalledApps();
@@ -1279,10 +1798,20 @@
         }
 
         function toggleApp(appId, checkbox) {
-            if (checkbox.checked) {
-                selectedApps.add(appId);
+            if (checkbox) {
+                // Called from checkbox
+                if (checkbox.checked) {
+                    selectedApps.add(appId);
+                } else {
+                    selectedApps.delete(appId);
+                }
             } else {
-                selectedApps.delete(appId);
+                // Called from recommendation card
+                if (selectedApps.has(appId)) {
+                    selectedApps.delete(appId);
+                } else {
+                    selectedApps.add(appId);
+                }
             }
 
             updateAppGrid();
@@ -1311,6 +1840,58 @@
 
             // Calculate disk space
             calculateDiskSpace();
+
+            // Update recommendations
+            updateRecommendations();
+        }
+
+        function updateRecommendations() {
+            const recommendationsSection = document.getElementById('recommendationsSection');
+            const recommendationsGrid = document.getElementById('recommendationsGrid');
+
+            if (selectedApps.size === 0) {
+                recommendationsSection.classList.remove('visible');
+                return;
+            }
+
+            const recommendations = generateRecommendations();
+
+            if (recommendations.length === 0) {
+                recommendationsSection.classList.remove('visible');
+                return;
+            }
+
+            recommendationsSection.classList.add('visible');
+            recommendationsGrid.innerHTML = '';
+
+            recommendations.forEach(app => {
+                const card = document.createElement('div');
+                card.className = 'recommendation-card';
+                if (selectedApps.has(app.id)) {
+                    card.classList.add('selected');
+                }
+
+                // Determine recommendation reason
+                let reason = 'Works well with your selection';
+                if (app.score >= 10) {
+                    reason = 'Highly recommended';
+                } else if (app.score >= 5) {
+                    reason = 'Frequently used together';
+                }
+
+                card.innerHTML = `
+                    <div class="recommendation-name">${app.name}</div>
+                    <div class="recommendation-description">${app.description}</div>
+                    <div class="recommendation-reason">💡 ${reason}</div>
+                `;
+
+                card.addEventListener('click', () => {
+                    toggleApp(app.id, null);
+                    updateRecommendations();
+                });
+
+                recommendationsGrid.appendChild(card);
+            });
         }
 
         function calculateDiskSpace() {
