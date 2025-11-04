@@ -42,3 +42,20 @@ __pycache__/
 *.py[cod]
 venv/
 .venv/
+*.egg-info/
+.pytest_cache/
+
+# Demo artifacts (generated files)
+demo/*.mp4
+demo/*.webm
+demo/*.png
+demo/*.gif
+!demo/README.md
+
+# Test artifacts
+test-results/
+playwright-report/
+playwright/.cache/
+htmlcov/
+.coverage
+coverage.xml
