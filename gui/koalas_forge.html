@@ -483,6 +483,17 @@
             color: white;
         }
 
+        .app-status.new {
+            background: linear-gradient(135deg, #FF6B9D 0%, #FFA06B 100%);
+            color: white;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
         .app-description {
             font-size: 0.9rem;
             color: var(--text-secondary);
@@ -902,12 +913,23 @@
     <!-- Action Bar -->
     <div class="action-bar">
         <div class="selection-info">
-            <span id="selectedCount">0</span> apps selected
-            <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                <input type="checkbox" id="dryRunToggle" style="cursor: pointer; width: 20px; height: 20px; accent-color: var(--eucalyptus);">
-                <label for="dryRunToggle" style="cursor: pointer; font-size: 0.9rem; color: var(--text-secondary);">
-                    🧪 Dry Run (test without installing)
-                </label>
+            <div style="margin-bottom: 0.5rem;">
+                <span id="selectedCount">0</span> apps selected
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="dryRunToggle" style="cursor: pointer; width: 20px; height: 20px; accent-color: var(--eucalyptus);">
+                    <label for="dryRunToggle" style="cursor: pointer; color: var(--text-secondary);">
+                        🧪 Dry Run (test without installing)
+                    </label>
+                </div>
+                <div id="diskSpaceInfo" style="padding: 0.5rem; background: var(--bamboo); border-radius: 6px; display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--text-secondary);">💾 Disk space needed:</span>
+                        <strong id="totalDiskSpace">0 MB</strong>
+                    </div>
+                    <div style="margin-top: 0.25rem; font-size: 0.85rem; color: var(--text-secondary);" id="diskWarning"></div>
+                </div>
             </div>
         </div>
         <div class="action-buttons">
@@ -934,6 +956,20 @@
                     </div>
                 </div>
                 <div class="progress-text" id="progressText">Preparing installation...</div>
+                <div class="timer-info" style="display: flex; justify-content: space-between; margin-top: 1rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: 8px; font-size: 0.9rem;">
+                    <div>
+                        <span style="color: var(--text-secondary);">⏱️ Elapsed:</span>
+                        <strong id="elapsedTime">0:00</strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-secondary);">⏰ Remaining:</span>
+                        <strong id="remainingTime">Calculating...</strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-secondary);">📊 Speed:</span>
+                        <strong id="installSpeed">--</strong>
+                    </div>
+                </div>
             </div>
 
             <div class="installation-log" id="installLog">
@@ -959,52 +995,52 @@
         // Sample app data - This will be loaded from the server
         const appDatabase = {
             ai_local: [
-                { id: 'ollama', name: 'Ollama', description: 'Run local LLMs with GPU acceleration', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'lm-studio', name: 'LM Studio', description: 'GUI for local LLMs - supports GGUF models', platforms: ['mac', 'windows'], installed: false, hasUpdate: false },
-                { id: 'gpt4all', name: 'GPT4All', description: 'Privacy-focused local LLM', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'jan', name: 'Jan', description: 'Open-source ChatGPT alternative', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'ollama', name: 'Ollama', description: 'Run local LLMs with GPU acceleration', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 150, dateAdded: '2024-11-15' },
+                { id: 'lm-studio', name: 'LM Studio', description: 'GUI for local LLMs - supports GGUF models', platforms: ['mac', 'windows'], installed: false, hasUpdate: false, size: 250, dateAdded: '2024-10-20' },
+                { id: 'gpt4all', name: 'GPT4All', description: 'Privacy-focused local LLM', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 180, dateAdded: '2024-09-10' },
+                { id: 'jan', name: 'Jan', description: 'Open-source ChatGPT alternative', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 120, dateAdded: '2024-12-28' },
             ],
             development_core: [
-                { id: 'git', name: 'Git', description: 'Version control system', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'python', name: 'Python 3.11', description: 'Popular programming language', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'node', name: 'Node.js', description: 'JavaScript runtime', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'docker', name: 'Docker', description: 'Container platform', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'vscode', name: 'Visual Studio Code', description: 'Popular code editor', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'cursor', name: 'Cursor', description: 'AI-powered code editor', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'git', name: 'Git', description: 'Version control system', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 50, dateAdded: '2024-08-01' },
+                { id: 'python', name: 'Python 3.11', description: 'Popular programming language', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 100, dateAdded: '2024-08-01' },
+                { id: 'node', name: 'Node.js', description: 'JavaScript runtime', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 80, dateAdded: '2024-08-01' },
+                { id: 'docker', name: 'Docker', description: 'Container platform', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 500, dateAdded: '2024-08-01' },
+                { id: 'vscode', name: 'Visual Studio Code', description: 'Popular code editor', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 200, dateAdded: '2024-08-01' },
+                { id: 'cursor', name: 'Cursor', description: 'AI-powered code editor', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 220, dateAdded: '2024-12-20' },
             ],
             creative: [
-                { id: 'blender', name: 'Blender', description: '3D creation suite', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'gimp', name: 'GIMP', description: 'Image editor', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'inkscape', name: 'Inkscape', description: 'Vector graphics editor', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'davinci', name: 'DaVinci Resolve', description: 'Professional video editor', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'obs', name: 'OBS Studio', description: 'Streaming and recording', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'blender', name: 'Blender', description: '3D creation suite', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 350, dateAdded: '2024-08-01' },
+                { id: 'gimp', name: 'GIMP', description: 'Image editor', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 150, dateAdded: '2024-08-01' },
+                { id: 'inkscape', name: 'Inkscape', description: 'Vector graphics editor', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 120, dateAdded: '2024-08-01' },
+                { id: 'davinci', name: 'DaVinci Resolve', description: 'Professional video editor', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 2500, dateAdded: '2024-08-01' },
+                { id: 'obs', name: 'OBS Studio', description: 'Streaming and recording', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 180, dateAdded: '2024-08-01' },
             ],
             gaming: [
-                { id: 'steam', name: 'Steam', description: 'Gaming platform', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'discord', name: 'Discord', description: 'Voice and chat for gamers', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'steam', name: 'Steam', description: 'Gaming platform', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 1000, dateAdded: '2024-08-01' },
+                { id: 'discord', name: 'Discord', description: 'Voice and chat for gamers', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 90, dateAdded: '2024-08-01' },
             ],
             productivity: [
-                { id: 'obsidian', name: 'Obsidian', description: 'Knowledge base and notes', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'notion', name: 'Notion', description: 'All-in-one workspace', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'rectangle', name: 'Rectangle', description: 'Window management', platforms: ['mac'], installed: false, hasUpdate: false },
-                { id: 'raycast', name: 'Raycast', description: 'Spotlight replacement with AI', platforms: ['mac'], installed: false, hasUpdate: false },
+                { id: 'obsidian', name: 'Obsidian', description: 'Knowledge base and notes', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 70, dateAdded: '2024-08-01' },
+                { id: 'notion', name: 'Notion', description: 'All-in-one workspace', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 80, dateAdded: '2024-08-01' },
+                { id: 'rectangle', name: 'Rectangle', description: 'Window management', platforms: ['mac'], installed: false, hasUpdate: false, size: 10, dateAdded: '2024-08-01' },
+                { id: 'raycast', name: 'Raycast', description: 'Spotlight replacement with AI', platforms: ['mac'], installed: false, hasUpdate: false, size: 50, dateAdded: '2024-12-15' },
             ],
             security: [
-                { id: 'bitwarden', name: 'Bitwarden', description: 'Password manager', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: '1password', name: '1Password', description: 'Password manager', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'nordvpn', name: 'NordVPN', description: 'VPN service', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'wireshark', name: 'Wireshark', description: 'Network analyzer', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'bitwarden', name: 'Bitwarden', description: 'Password manager', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 100, dateAdded: '2024-08-01' },
+                { id: '1password', name: '1Password', description: 'Password manager', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 120, dateAdded: '2024-08-01' },
+                { id: 'nordvpn', name: 'NordVPN', description: 'VPN service', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 90, dateAdded: '2024-08-01' },
+                { id: 'wireshark', name: 'Wireshark', description: 'Network analyzer', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 150, dateAdded: '2024-08-01' },
             ],
             databases: [
-                { id: 'postgresql', name: 'PostgreSQL', description: 'Powerful relational database', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'mysql', name: 'MySQL', description: 'Popular database', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'redis', name: 'Redis', description: 'In-memory data store', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
+                { id: 'postgresql', name: 'PostgreSQL', description: 'Powerful relational database', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 200, dateAdded: '2024-08-01' },
+                { id: 'mysql', name: 'MySQL', description: 'Popular database', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 180, dateAdded: '2024-08-01' },
+                { id: 'redis', name: 'Redis', description: 'In-memory data store', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 40, dateAdded: '2024-08-01' },
             ],
             browsers: [
-                { id: 'chrome', name: 'Google Chrome', description: 'Popular web browser', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'firefox', name: 'Firefox', description: 'Privacy-focused browser', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'brave', name: 'Brave', description: 'Privacy-first browser', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false },
-                { id: 'arc', name: 'Arc', description: 'Modern browser', platforms: ['mac'], installed: false, hasUpdate: false },
+                { id: 'chrome', name: 'Google Chrome', description: 'Popular web browser', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 250, dateAdded: '2024-08-01' },
+                { id: 'firefox', name: 'Firefox', description: 'Privacy-focused browser', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 200, dateAdded: '2024-08-01' },
+                { id: 'brave', name: 'Brave', description: 'Privacy-first browser', platforms: ['mac', 'linux', 'windows'], installed: false, hasUpdate: false, size: 220, dateAdded: '2024-08-01' },
+                { id: 'arc', name: 'Arc', description: 'Modern browser', platforms: ['mac'], installed: false, hasUpdate: false, size: 180, dateAdded: '2024-12-10' },
             ],
         };
 
@@ -1178,6 +1214,14 @@
             return null;
         }
 
+        function isNewApp(dateAdded) {
+            if (!dateAdded) return false;
+            const addedDate = new Date(dateAdded);
+            const now = new Date('2025-01-04'); // Using current date from context
+            const daysDiff = (now - addedDate) / (1000 * 60 * 60 * 24);
+            return daysDiff <= 30;
+        }
+
         function loadApps() {
             const appGrid = document.getElementById('appGrid');
             appGrid.innerHTML = '';
@@ -1202,11 +1246,19 @@
                 card.classList.add('selected');
             }
 
-            const statusBadge = app.installed
-                ? `<span class="app-status installed">Installed</span>`
-                : app.hasUpdate
-                ? `<span class="app-status update">Update Available</span>`
-                : '';
+            const statusBadges = [];
+
+            if (app.installed) {
+                statusBadges.push(`<span class="app-status installed">Installed</span>`);
+            } else if (app.hasUpdate) {
+                statusBadges.push(`<span class="app-status update">Update Available</span>`);
+            }
+
+            if (isNewApp(app.dateAdded)) {
+                statusBadges.push(`<span class="app-status new">🆕 New!</span>`);
+            }
+
+            const statusBadge = statusBadges.join(' ');
 
             const platformBadges = app.platforms.map(p =>
                 `<span class="platform-badge">${p}</span>`
@@ -1256,6 +1308,53 @@
             document.getElementById('selectedCount').textContent = selectedApps.size;
             const installBtn = document.getElementById('installBtn');
             installBtn.disabled = selectedApps.size === 0;
+
+            // Calculate disk space
+            calculateDiskSpace();
+        }
+
+        function calculateDiskSpace() {
+            const diskSpaceInfo = document.getElementById('diskSpaceInfo');
+            const totalDiskSpace = document.getElementById('totalDiskSpace');
+            const diskWarning = document.getElementById('diskWarning');
+
+            if (selectedApps.size === 0) {
+                diskSpaceInfo.style.display = 'none';
+                return;
+            }
+
+            let totalSize = 0;
+            selectedApps.forEach(appId => {
+                const app = findAppById(appId);
+                if (app && app.size) {
+                    totalSize += app.size;
+                }
+            });
+
+            // Show disk space info
+            diskSpaceInfo.style.display = 'block';
+
+            // Format size
+            let formattedSize;
+            if (totalSize >= 1000) {
+                formattedSize = (totalSize / 1000).toFixed(1) + ' GB';
+            } else {
+                formattedSize = totalSize + ' MB';
+            }
+
+            totalDiskSpace.textContent = formattedSize;
+
+            // Show warnings
+            if (totalSize > 10000) {
+                diskWarning.textContent = '⚠️ Large installation (>10GB) - ensure sufficient disk space';
+                diskWarning.style.color = 'var(--error)';
+            } else if (totalSize > 5000) {
+                diskWarning.textContent = '💡 Moderate installation (~5GB+) - may take a while';
+                diskWarning.style.color = 'var(--warning)';
+            } else {
+                diskWarning.textContent = '✓ Manageable installation size';
+                diskWarning.style.color = 'var(--success)';
+            }
         }
 
         function filterCategory(category) {
@@ -1366,10 +1465,45 @@
             const appsToInstall = Array.from(selectedApps);
             let currentIndex = 0;
 
+            // Timer variables
+            const startTime = Date.now();
+            let timerInterval;
+            const appTimes = []; // Track time per app for better estimates
+
             // Clear log
             installLog.innerHTML = dryRun
                 ? '<div class="log-entry info">🧪 DRY RUN MODE - No actual installation will occur</div>'
                 : '<div class="log-entry info">Starting installation...</div>';
+
+            // Start timer
+            timerInterval = setInterval(updateTimer, 1000);
+
+            function updateTimer() {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                document.getElementById('elapsedTime').textContent =
+                    `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+                // Calculate remaining time
+                if (currentIndex > 0 && currentIndex < appsToInstall.length) {
+                    const avgTimePerApp = elapsed / currentIndex;
+                    const remainingApps = appsToInstall.length - currentIndex;
+                    const estimatedRemaining = Math.floor(avgTimePerApp * remainingApps);
+                    const remMin = Math.floor(estimatedRemaining / 60);
+                    const remSec = estimatedRemaining % 60;
+                    document.getElementById('remainingTime').textContent =
+                        `~${remMin}:${remSec.toString().padStart(2, '0')}`;
+
+                    // Calculate speed
+                    const appsPerMin = (currentIndex / elapsed * 60).toFixed(1);
+                    document.getElementById('installSpeed').textContent =
+                        `${appsPerMin} apps/min`;
+                } else if (currentIndex === 0) {
+                    document.getElementById('remainingTime').textContent = 'Calculating...';
+                    document.getElementById('installSpeed').textContent = '--';
+                }
+            }
 
             function installNext() {
                 if (installationPaused) {
@@ -1379,6 +1513,13 @@
 
                 if (currentIndex >= appsToInstall.length) {
                     // Installation complete
+                    clearInterval(timerInterval);
+                    updateTimer(); // Final update
+
+                    const totalElapsed = Math.floor((Date.now() - startTime) / 1000);
+                    const totalMin = Math.floor(totalElapsed / 60);
+                    const totalSec = totalElapsed % 60;
+
                     if (dryRun) {
                         progressText.textContent = 'Dry run complete! ✅ All checks passed';
                         installLog.innerHTML += '<div class="log-entry success">🧪 Dry run complete! No changes were made to your system.</div>';
@@ -1386,6 +1527,9 @@
                         progressText.textContent = 'Installation complete! 🎉';
                         installLog.innerHTML += '<div class="log-entry success">All applications installed successfully!</div>';
                     }
+                    installLog.innerHTML += `<div class="log-entry info">⏱️ Total time: ${totalMin}:${totalSec.toString().padStart(2, '0')}</div>`;
+
+                    document.getElementById('remainingTime').textContent = '0:00';
                     document.getElementById('pauseBtn').disabled = true;
                     return;
                 }
