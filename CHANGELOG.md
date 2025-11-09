@@ -5,6 +5,61 @@ All notable changes to Koala's Forge will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-01-04
+
+### 🚀 Major Feature Update - Smart Recommendations & Profiles
+
+#### Added - Quick Win Features
+- ⏱️ **Installation Timer** - Real-time elapsed/remaining time display
+  - Shows elapsed time in MM:SS format during installation
+  - Estimates remaining time based on average installation speed
+  - Displays current speed (apps/min)
+  - Total time logged on completion
+
+- 💾 **Disk Space Calculator** - Intelligent storage warnings
+  - Calculates total disk space needed for selected apps
+  - Auto-formats display (MB → GB at 1000MB threshold)
+  - Color-coded warnings: >10GB (red), >5GB (yellow), <5GB (green)
+  - Dynamically updates as apps are selected/deselected
+  - Shows total size in action bar
+
+- 🆕 **Recent Apps Section** - Discover new additions
+  - "New!" badge on apps added in last 30 days
+  - Gradient animation with pulsing effect
+  - Added `dateAdded` field to all apps
+  - Currently showing 4 new apps (Jan, Cursor, Arc, Raycast)
+
+#### Added - Priority Features
+
+- 💡 **Smart Recommendations Engine** - AI-like app suggestions
+  - Intelligent algorithm based on complementary apps, dependencies, and workflows
+  - 40+ app relationship mappings across all categories
+  - 5 workflow pattern detections (web-dev, AI-dev, creative, gaming, data science)
+  - Scoring system ranks recommendations by relevance
+  - Top 6 recommendations displayed in beautiful gradient UI
+  - Real-time updates as selection changes
+  - Contextual reasoning for each recommendation
+  - Click to instantly add recommended apps
+
+- 📁 **Installation Profiles System** - Save and share configurations
+  - Save current app selection as named profile
+  - One-click profile loading
+  - Profile management modal with list view
+  - Export profiles as JSON files (shareable)
+  - Import profiles from JSON files
+  - LocalStorage persistence (survives browser refresh)
+  - Profile metadata: name, description, app count, creation date
+  - Delete profiles with confirmation
+  - Perfect for multi-machine setups and team standardization
+
+#### Technical Improvements
+- Map-based scoring for O(n) complexity in recommendations
+- Efficient profile storage using localStorage
+- No breaking changes to existing features
+- Seamless integration with wizard mode and presets
+- Test suite for recommendation algorithm
+- Comprehensive feature validation
+
 ## [1.0.0] - 2025-01-04
 
 ### 🎉 Initial Release - Complete Transformation from Ultimate System Setup

@@ -18,85 +18,67 @@ This document outlines the planned features and enhancements for Koala's Forge.
 - [x] Test suite and verification scripts
 - [x] FAQ documentation
 
-## 🚧 In Progress (v1.1.0)
+## ✅ Completed (v1.1.0)
 
-### Installation Timer & Metrics
-**Priority**: High | **Complexity**: Low
-- [ ] Show elapsed time during installation
-- [ ] Estimate total time remaining
-- [ ] Track installation speed
-- [ ] Display per-app installation time
-- [ ] Historical time averages
+### Installation Timer & Metrics ✓
+**Priority**: High | **Complexity**: Low | **Status**: COMPLETE
+- [x] Show elapsed time during installation (MM:SS format)
+- [x] Estimate total time remaining (based on avg speed)
+- [x] Track installation speed (apps/min)
+- [x] Display in progress modal with timer UI
+- [ ] Display per-app installation time (future enhancement)
+- [ ] Historical time averages (future enhancement)
 
-**Implementation Notes**:
-- Add `startTime` tracking to each app installation
-- Calculate ETA based on completed/remaining apps
-- Store historical data in localStorage
-- Display in progress modal
+### Disk Space Calculator ✓
+**Priority**: High | **Complexity**: Medium | **Status**: COMPLETE
+- [x] Show disk space required per app (size field added)
+- [x] Calculate total space needed for selection
+- [x] Warn if insufficient space (color-coded: red >10GB, yellow >5GB)
+- [x] Auto-format display (MB → GB)
+- [x] Real-time calculation as apps are selected
+- [ ] Check available disk space from system (future enhancement)
+- [ ] Show space breakdown by category (future enhancement)
 
-### Estimated Disk Space Calculator
-**Priority**: High | **Complexity**: Medium
-- [ ] Show disk space required per app
-- [ ] Calculate total space needed for selection
-- [ ] Check available disk space
-- [ ] Warn if insufficient space
-- [ ] Show space breakdown by category
+### Recent Apps Section ✓
+**Priority**: Medium | **Complexity**: Low | **Status**: COMPLETE
+- [x] Track recently added apps (dateAdded field)
+- [x] Show "New" badges on recent additions (30-day threshold)
+- [x] Gradient animation with pulse effect
+- [x] Badge system for visual indication
+- [x] Auto-display on apps added in last 30 days
+- [ ] Quick access section on homepage (future enhancement)
+- [ ] Filter by "Recently Added" (future enhancement)
 
-**Implementation Notes**:
-- Add `size` field to apps.yaml
-- Query system for available space
-- Real-time calculation as apps are selected
-- Visual indicator (progress bar style)
+### Smart Recommendations Engine ✓
+**Priority**: High | **Complexity**: High | **Status**: COMPLETE
+- [x] Complementary app suggestions (40+ relationships)
+- [x] Dependency detection and suggestions
+- [x] Workflow-based recommendations (5 patterns)
+- [x] Scoring algorithm (dependencies 5pts, workflow 2pts, complementary 3pts)
+- [x] "Recommended for You" section with gradient UI
+- [x] Top 6 recommendations displayed
+- [x] Real-time updates as selection changes
+- [x] Click to add recommended apps
+- [x] Contextual reasoning for each recommendation
+- [ ] Learn from user patterns over time (future enhancement)
+- [ ] Allow users to rate recommendations (future enhancement)
 
-### Recent Apps Section
-**Priority**: Medium | **Complexity**: Low
-- [ ] Track recently added apps (to Koala's Forge)
-- [ ] Show "New" badges on recent additions
-- [ ] Quick access section on homepage
-- [ ] Filter by "Recently Added"
-
-**Implementation Notes**:
-- Add `dateAdded` field to apps.yaml
-- Display apps added in last 30 days
-- Sortable by date
-- Badge system for visual indication
+### Installation Profiles System ✓
+**Priority**: High | **Complexity**: Medium | **Status**: COMPLETE
+- [x] Save multiple named profiles with descriptions
+- [x] Quick switch between profiles (one-click load)
+- [x] Share profiles with teams (JSON export)
+- [x] Import profiles from JSON file
+- [x] Profile management modal UI
+- [x] LocalStorage persistence
+- [x] Profile metadata (name, description, apps, presets, dates)
+- [x] Delete profiles with confirmation
+- [x] Export as downloadable JSON files
+- [ ] Profile templates gallery (future enhancement)
+- [ ] Automatic profile suggestions (future enhancement)
+- [ ] Import profiles from URL (future enhancement)
 
 ## 🎯 Planned Features (v1.2.0+)
-
-### 1. Smart Recommendations Engine
-**Priority**: High | **Complexity**: High | **Est. Time**: 1-2 weeks
-
-**Features**:
-- "People who installed X also installed Y"
-- AI-powered suggestions based on selected apps
-- Detect missing dependencies and suggest them
-- Workflow-based recommendations (e.g., "web dev", "ML engineering")
-- Learn from user patterns over time
-
-**Implementation Plan**:
-1. Build analytics database (optional, privacy-first)
-2. Create co-occurrence matrix for apps
-3. Implement recommendation algorithm
-4. Add "Recommended for You" section
-5. Allow users to rate recommendations
-6. Machine learning model for personalization (optional)
-
-**Technical Details**:
-- Backend: Simple collaborative filtering
-- Storage: LocalStorage or optional cloud sync
-- Privacy: All local by default, opt-in for cloud
-- Algorithm: Jaccard similarity or association rules
-
-### 2. Installation Profiles System
-**Priority**: High | **Complexity**: Medium | **Est. Time**: 1 week
-
-**Features**:
-- Save multiple named profiles ("Work", "Personal", "Gaming")
-- Quick switch between profiles
-- Share profiles with teams
-- Import profiles from URL or file
-- Profile templates gallery
-- Automatic profile suggestions
 
 **Implementation Plan**:
 1. Profile data structure (JSON)

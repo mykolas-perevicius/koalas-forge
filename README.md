@@ -56,10 +56,31 @@ Then open your browser to **http://localhost:8080** and start selecting apps!
 ### Modern Web Interface
 - Beautiful pastel design inspired by nature 🌿
 - Responsive layout works on any screen size
-- Real-time installation progress
+- Real-time installation progress with timer ⏱️
 - Search and filter apps instantly
+- Dark mode toggle 🌙
+
+### 🆕 Smart Recommendations (v1.1.0)
+- **AI-like suggestions** - Get intelligent app recommendations based on your selection
+- **40+ relationships** - Complementary apps, dependencies, and workflow patterns
+- **5 workflow patterns** - Web dev, AI dev, creative, gaming, data science
+- **Top 6 display** - Most relevant recommendations with contextual reasoning
+- **One-click add** - Instantly add recommended apps to your selection
+
+### 📁 Installation Profiles (v1.1.0)
+- **Save profiles** - Store your app selections with custom names and descriptions
+- **One-click loading** - Instantly apply saved profiles
+- **Share with teams** - Export profiles as JSON files
+- **Import profiles** - Load shared configurations from files
+- **Multi-machine setup** - Replicate setups across devices in seconds
+
+### 💡 Quick Win Features (v1.1.0)
+- **Installation Timer** - See elapsed time, remaining time, and speed (apps/min)
+- **Disk Space Calculator** - Know exactly how much space you need with color-coded warnings
+- **Recent Apps** - Discover new additions with animated "New!" badges
 
 ### Smart Installation
+- **Dry run mode** - Test installations without making changes 🧪
 - **Parallel downloads** - Install multiple apps simultaneously
 - **Resume support** - Power went out? Pick up where you left off
 - **Dependency handling** - Automatically installs requirements
