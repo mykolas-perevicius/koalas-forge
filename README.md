@@ -4,7 +4,7 @@
 
 Choose your apps. Click install. Get on with your life.
 
-![Version](https://img.shields.io/badge/version-1.1.1-success)
+![Version](https://img.shields.io/badge/version-1.2.0-success)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -78,6 +78,43 @@ Then open your browser to **http://localhost:8080** and start selecting apps!
 - **Installation Timer** - See elapsed time, remaining time, and speed (apps/min)
 - **Disk Space Calculator** - Know exactly how much space you need with color-coded warnings
 - **Recent Apps** - Discover new additions with animated "New!" badges
+
+### 🎯 Event-Driven Architecture & Advanced Systems (v1.2.0)
+
+#### Event System
+- **Reactive architecture** - Complete event-driven design with EventBus
+- **20+ event types** - Track everything from installs to downloads to errors
+- **Priority handlers** - Control execution order of event listeners
+- **Event history** - Debug and audit all system events
+- **Async support** - Mix sync and async event handlers seamlessly
+
+#### Plugin System
+- **Full extensibility** - Create custom plugins for any functionality
+- **Auto-discovery** - Plugins automatically detected from `~/.koalas-forge/plugins/`
+- **Hot reload** - Load, unload, and reload plugins without restart
+- **Event integration** - Plugins hook into the event system
+- **Example included** - `InstallationLogger` plugin demonstrates the API
+
+#### Rollback System
+- **Safe installations** - Snapshot your system before changes
+- **Lightweight** - Only tracks packages, not files (99% space savings)
+- **One-command rollback** - Restore to any previous state instantly
+- **Cross-platform** - Works with brew, apt, snap, winget, and more
+- **No bloat** - Smart tracking of what was actually installed
+
+#### Parallel Downloads
+- **5x faster installs** - Download up to 5 apps concurrently
+- **Resume support** - Continue interrupted downloads
+- **Progress tracking** - Real-time stats for each download
+- **Checksum verification** - Ensure integrity of all downloads
+- **Smart caching** - Avoid re-downloading the same files
+
+#### Cloud Sync
+- **Cross-device profiles** - Sync your setup across all machines
+- **File-based backend** - Works with Dropbox, iCloud, OneDrive, Google Drive
+- **Encrypted storage** - Your profiles are encrypted at rest
+- **Auto-detection** - Automatically finds your cloud storage
+- **No server needed** - Pure peer-to-peer via cloud storage
 
 ### Smart Installation
 - **Dry run mode** - Test installations without making changes 🧪
