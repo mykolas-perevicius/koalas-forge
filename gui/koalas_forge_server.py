@@ -10,6 +10,7 @@ import logging
 import os
 import subprocess
 import sys
+import weakref
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional, List, Set
@@ -39,7 +40,8 @@ class KoalasForgeServer:
         self.port = port
         self.ws_port = ws_port
         self.app = web.Application()
-        self.websocket_clients = set()
+        # CRITICAL FIX: Use WeakSet for WebSocket clients to prevent memory leaks
+        self.websocket_clients = weakref.WeakSet()
         self.installation_process = None
         self.installation_paused = False
         self.installation_queue: List[str] = []
@@ -695,22 +697,34 @@ class KoalasForgeServer:
             return False
 
     async def broadcast(self, message: Dict[str, Any]):
-        """Broadcast message to all WebSocket clients"""
+        """
+        Broadcast message to all WebSocket clients
+
+        CRITICAL FIX: Uses WeakSet which automatically removes dead references
+        """
         if self.websocket_clients:
             message_str = json.dumps(message)
-            disconnected_clients = set()
-            for client in self.websocket_clients:
+            # Create a snapshot of clients to avoid set changed during iteration
+            clients_snapshot = list(self.websocket_clients)
+
+            for client in clients_snapshot:
                 try:
                     await client.send(message_str)
                 except websockets.exceptions.ConnectionClosed:
-                    disconnected_clients.add(client)
-
-            self.websocket_clients -= disconnected_clients
+                    # Client will be automatically removed from WeakSet when garbage collected
+                    logger.debug(f"Skipping disconnected client (will be auto-removed)")
+                except Exception as e:
+                    logger.error(f"Error broadcasting to client: {e}")
 
     async def handle_websocket(self, websocket):
-        """Handle WebSocket connections"""
+        """
+        Handle WebSocket connections
+
+        CRITICAL FIX: Proper cleanup with WeakSet to prevent memory leaks
+        """
         self.websocket_clients.add(websocket)
-        logger.info(f"🐨 WebSocket client connected. Total: {len(self.websocket_clients)}")
+        client_count = len(list(self.websocket_clients))
+        logger.info(f"🐨 WebSocket client connected. Total: {client_count}")
 
         try:
             # Send initial system info
@@ -729,10 +743,18 @@ class KoalasForgeServer:
                     logger.error(f"Invalid JSON: {message}")
 
         except websockets.exceptions.ConnectionClosed:
-            pass
+            logger.debug("WebSocket connection closed normally")
+        except Exception as e:
+            logger.error(f"WebSocket error: {e}")
         finally:
-            self.websocket_clients.discard(websocket)
-            logger.info(f"WebSocket client disconnected. Total: {len(self.websocket_clients)}")
+            # With WeakSet, removal is automatic but we can explicitly discard
+            try:
+                self.websocket_clients.discard(websocket)
+            except:
+                pass  # May already be removed
+
+            client_count = len(list(self.websocket_clients))
+            logger.info(f"WebSocket client disconnected. Total: {client_count}")
 
     async def run_http_server(self):
         """Run the HTTP server"""

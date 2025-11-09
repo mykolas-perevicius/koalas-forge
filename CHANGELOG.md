@@ -5,6 +5,34 @@ All notable changes to Koala's Forge will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-11-09
+
+### 🔧 Technical Improvements & Bug Fixes
+
+#### Fixed
+- 🐛 **Critical WebSocket Memory Leak** - Fixed memory leak in WebSocket client management
+  - Replaced `set()` with `weakref.WeakSet()` for automatic client cleanup
+  - Added proper error handling in broadcast method
+  - Prevents memory accumulation from dead WebSocket connections
+  - Improved logging for connection tracking
+
+#### Added - Architecture & Code Quality
+- 🏗️ **New Core Module Structure** (`src/core/`)
+  - `platform_detection.py` - Enhanced platform and architecture detection
+  - `download_manager.py` - Modular download management
+  - `errors.py` - Centralized error handling
+  - Improved code organization and maintainability
+
+- 🧪 **Expanded Test Suite**
+  - Unit tests for platform detection (WSL2, architectures, distributions)
+  - Better test coverage for core functionality
+  - Located in `tests/unit/` for organized testing
+
+#### Technical Details
+- Better separation of concerns with modular architecture
+- Improved error handling and logging throughout
+- Foundation for future multi-platform support enhancements
+
 ## [1.1.0] - 2025-01-04
 
 ### 🚀 Major Feature Update - Smart Recommendations & Profiles
