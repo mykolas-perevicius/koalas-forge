@@ -312,6 +312,26 @@ class CloudSyncManager:
         """Get list of available backends"""
         return list(self.backends.keys())
 
+    def get_status(self) -> Dict[str, Any]:
+        """Get sync status information"""
+        backends = list(self.backends.keys())
+        primary_backend = backends[0] if backends else 'none'
+
+        status = {
+            'enabled': len(backends) > 0,
+            'backend': primary_backend,
+            'backends': backends,
+            'device_id': self.device_id,
+        }
+
+        # Add sync path if available
+        if primary_backend != 'none' and primary_backend in self.backends:
+            backend = self.backends[primary_backend]
+            if hasattr(backend, 'sync_dir'):
+                status['sync_path'] = str(backend.sync_dir)
+
+        return status
+
     async def sync_profile(self,
                           profile_data: Dict[str, Any],
                           backends: Optional[List[str]] = None) -> Dict[str, bool]:

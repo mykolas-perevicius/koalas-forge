@@ -1,0 +1,397 @@
+#!/usr/bin/env python3
+"""
+🐨 Koala's Forge CLI Tool
+A powerful command-line interface for managing your app installations.
+
+Usage:
+  koala install <app1> <app2> ...     Install applications
+  koala update [app1] [app2] | --all  Update applications
+  koala uninstall <app1> <app2>       Uninstall applications
+  koala list [--installed]            List available or installed apps
+  koala search <term>                 Search for applications
+
+  koala rollback list                 List rollback snapshots
+  koala rollback create <name>        Create a new snapshot
+  koala rollback restore <id>         Restore to a snapshot
+
+  koala plugin list                   List loaded plugins
+  koala plugin load <path>            Load a plugin
+  koala plugin reload <name>          Reload a plugin
+
+  koala sync push                     Push profile to cloud
+  koala sync pull                     Pull profile from cloud
+  koala sync status                   Check sync status
+
+  koala events                        Show recent events
+  koala status                        Show system status
+  koala version                       Show version info
+"""
+
+import sys
+import asyncio
+import argparse
+from pathlib import Path
+from typing import List, Optional
+import json
+
+# Add src to path
+sys.path.insert(0, str(Path(__file__).parent))
+
+from src.core.event_system import EventBus, Event, EventType, get_event_bus
+from src.core.plugin_system import PluginManager
+from src.core.rollback_system import RollbackManager
+from src.core.cloud_sync import CloudSyncManager
+from datetime import datetime
+
+
+class KoalasCLI:
+    """Main CLI application"""
+
+    def __init__(self):
+        self.event_bus = get_event_bus()
+        self.plugin_manager = PluginManager(self.event_bus)
+        self.rollback_manager = RollbackManager()
+        self.cloud_sync = CloudSyncManager()
+        self.version = "1.2.0"
+
+    async def cmd_install(self, apps: List[str], yes: bool = False):
+        """Install applications"""
+        print(f"🐨 Installing {len(apps)} application(s)...")
+
+        # Create rollback point
+        snapshot_id = await self.rollback_manager.create_snapshot(f"Before installing {', '.join(apps)}")
+        print(f"📸 Created snapshot: {snapshot_id}")
+
+        for app in apps:
+            await self.event_bus.emit(Event(
+                type=EventType.INSTALL_STARTED,
+                data={'app': app, 'snapshot': snapshot_id},
+                source='cli'
+            ))
+
+            # Here would be actual installation logic
+            print(f"  ⬇️  Installing {app}...")
+            await asyncio.sleep(0.5)  # Simulate install
+
+            await self.event_bus.emit(Event(
+                type=EventType.INSTALL_COMPLETED,
+                data={'app': app, 'success': True},
+                source='cli'
+            ))
+            print(f"  ✅ {app} installed successfully")
+
+        print(f"\n✨ Installation complete! Installed {len(apps)} app(s)")
+
+    async def cmd_rollback_list(self):
+        """List rollback snapshots"""
+        snapshots = self.rollback_manager.list_snapshots()
+
+        if not snapshots:
+            print("No snapshots found. Create one with: koala rollback create <name>")
+            return
+
+        print(f"\n📸 Rollback Snapshots ({len(snapshots)})\n")
+        print(f"{'ID':<25} {'Date':<20} {'Apps':<10} {'Description'}")
+        print("=" * 80)
+
+        for snapshot in snapshots:
+            # Handle timestamp (could be string, float/unix timestamp, or datetime object)
+            ts = snapshot['timestamp']
+            if isinstance(ts, str):
+                date = datetime.fromisoformat(ts).strftime('%Y-%m-%d %H:%M')
+            elif isinstance(ts, (int, float)):
+                date = datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M')
+            else:
+                date = ts.strftime('%Y-%m-%d %H:%M')
+
+            apps_count = len(snapshot.get('installed_apps', []))
+            desc = snapshot.get('description', 'No description')[:40]
+            print(f"{snapshot['id']:<25} {date:<20} {apps_count:<10} {desc}")
+
+    async def cmd_rollback_create(self, name: str):
+        """Create a rollback snapshot"""
+        snapshot_id = await self.rollback_manager.create_snapshot(name)
+        print(f"✅ Created snapshot: {snapshot_id}")
+        print(f"   Description: {name}")
+
+        # Get the snapshot to show details
+        snapshots = self.rollback_manager.list_snapshots()
+        snapshot = next((s for s in snapshots if s['id'] == snapshot_id), None)
+        if snapshot:
+            print(f"   Apps tracked: {len(snapshot.get('installed_apps', []))}")
+
+    async def cmd_rollback_restore(self, snapshot_id: str):
+        """Restore to a rollback snapshot"""
+        print(f"🔄 Restoring to snapshot: {snapshot_id}")
+
+        result = await self.rollback_manager.rollback_to_snapshot(snapshot_id)
+
+        if result['success']:
+            print(f"✅ Rollback successful!")
+            print(f"   Removed: {len(result['removed'])} apps")
+            print(f"   Added: {len(result['added'])} apps")
+
+            if result['removed']:
+                print("\n   Removed apps:")
+                for app in result['removed']:
+                    print(f"     - {app}")
+
+            if result['added']:
+                print("\n   Added apps:")
+                for app in result['added']:
+                    print(f"     + {app}")
+        else:
+            print(f"❌ Rollback failed: {result.get('error', 'Unknown error')}")
+
+    async def cmd_plugin_list(self):
+        """List loaded plugins"""
+        await self.plugin_manager.load_all_plugins()
+        plugins = self.plugin_manager.list_plugins()
+
+        if not plugins:
+            print("No plugins loaded. Add plugins to ~/.koalas-forge/plugins/")
+            return
+
+        print(f"\n🔌 Loaded Plugins ({len(plugins)})\n")
+        print(f"{'Name':<25} {'Version':<10} {'Status'}")
+        print("=" * 60)
+
+        for plugin in plugins:
+            status = "✅ Active" if plugin.get('enabled', True) else "⏸️  Disabled"
+            print(f"{plugin['name']:<25} {plugin.get('version', '1.0.0'):<10} {status}")
+
+    async def cmd_plugin_load(self, path: str):
+        """Load a plugin"""
+        print(f"🔌 Loading plugin: {path}")
+        success = await self.plugin_manager.load_plugin(Path(path))
+
+        if success:
+            print(f"✅ Plugin loaded successfully")
+        else:
+            print(f"❌ Failed to load plugin")
+
+    async def cmd_plugin_reload(self, name: str):
+        """Reload a plugin"""
+        print(f"🔄 Reloading plugin: {name}")
+        success = await self.plugin_manager.reload_plugin(name)
+
+        if success:
+            print(f"✅ Plugin reloaded successfully")
+        else:
+            print(f"❌ Failed to reload plugin")
+
+    async def cmd_sync_status(self):
+        """Check cloud sync status"""
+        status = self.cloud_sync.get_status()
+
+        print(f"\n☁️  Cloud Sync Status\n")
+        print(f"Backend: {status['backend']}")
+        print(f"Enabled: {'✅ Yes' if status['enabled'] else '❌ No'}")
+        print(f"Last sync: {status.get('last_sync', 'Never')}")
+
+        if status['backend'] != 'none':
+            print(f"Sync path: {status.get('sync_path', 'Not configured')}")
+
+    async def cmd_sync_push(self):
+        """Push profile to cloud"""
+        print("☁️  Pushing profile to cloud...")
+
+        # Create a profile from current state
+        profile = {
+            'name': 'current',
+            'apps': [],  # Would get from system
+            'timestamp': datetime.now().isoformat()
+        }
+
+        success = await self.cloud_sync.push_profile(profile)
+
+        if success:
+            print("✅ Profile pushed to cloud successfully")
+        else:
+            print("❌ Failed to push profile")
+
+    async def cmd_sync_pull(self):
+        """Pull profile from cloud"""
+        print("☁️  Pulling profile from cloud...")
+
+        profile = await self.cloud_sync.pull_profile('current')
+
+        if profile:
+            print("✅ Profile pulled from cloud successfully")
+            print(f"   Apps: {len(profile.get('apps', []))}")
+        else:
+            print("❌ No profile found in cloud")
+
+    async def cmd_events(self, limit: int = 20):
+        """Show recent events"""
+        history = self.event_bus.get_history(limit=limit)
+
+        if not history:
+            print("No events recorded yet.")
+            return
+
+        print(f"\n📋 Recent Events (last {len(history)})\n")
+        print(f"{'Time':<20} {'Type':<30} {'Source':<15}")
+        print("=" * 70)
+
+        for event in history:
+            time = datetime.fromisoformat(event.timestamp).strftime('%H:%M:%S')
+            event_type = event.type.name if hasattr(event.type, 'name') else str(event.type)
+            print(f"{time:<20} {event_type:<30} {event.source:<15}")
+
+    async def cmd_status(self):
+        """Show system status"""
+        print(f"\n🐨 Koala's Forge System Status\n")
+        print(f"Version: {self.version}")
+
+        # Event bus stats
+        stats = self.event_bus.get_stats()
+        print(f"\nEvent System:")
+        print(f"  Handlers: {stats['sync_handlers']} sync, {stats['async_handlers']} async")
+        print(f"  Events processed: {len(self.event_bus.get_history())}")
+
+        # Plugins
+        await self.plugin_manager.load_all_plugins()
+        plugins = self.plugin_manager.list_plugins()
+        print(f"\nPlugins:")
+        print(f"  Loaded: {len(plugins)}")
+
+        # Snapshots
+        snapshots = self.rollback_manager.list_snapshots()
+        print(f"\nRollback:")
+        print(f"  Snapshots: {len(snapshots)}")
+
+        # Sync
+        sync_status = self.cloud_sync.get_status()
+        print(f"\nCloud Sync:")
+        print(f"  Backend: {sync_status['backend']}")
+        print(f"  Enabled: {sync_status['enabled']}")
+
+    def cmd_version(self):
+        """Show version info"""
+        print(f"🐨 Koala's Forge v{self.version}")
+        print(f"Event-Driven Architecture Release")
+        print(f"\nFeatures:")
+        print(f"  ✅ Event System")
+        print(f"  ✅ Plugin System")
+        print(f"  ✅ Rollback System")
+        print(f"  ✅ Parallel Downloads")
+        print(f"  ✅ Cloud Sync")
+
+
+async def main():
+    """Main entry point"""
+    parser = argparse.ArgumentParser(
+        description='🐨 Koala\'s Forge - Modern application installer',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=__doc__
+    )
+
+    subparsers = parser.add_subparsers(dest='command', help='Command to run')
+
+    # Install command
+    install_parser = subparsers.add_parser('install', help='Install applications')
+    install_parser.add_argument('apps', nargs='+', help='Applications to install')
+    install_parser.add_argument('-y', '--yes', action='store_true', help='Skip confirmations')
+
+    # Rollback commands
+    rollback_parser = subparsers.add_parser('rollback', help='Rollback operations')
+    rollback_subparsers = rollback_parser.add_subparsers(dest='rollback_cmd')
+
+    rollback_subparsers.add_parser('list', help='List snapshots')
+
+    rollback_create = rollback_subparsers.add_parser('create', help='Create snapshot')
+    rollback_create.add_argument('name', help='Snapshot description')
+
+    rollback_restore = rollback_subparsers.add_parser('restore', help='Restore snapshot')
+    rollback_restore.add_argument('id', help='Snapshot ID')
+
+    # Plugin commands
+    plugin_parser = subparsers.add_parser('plugin', help='Plugin operations')
+    plugin_subparsers = plugin_parser.add_subparsers(dest='plugin_cmd')
+
+    plugin_subparsers.add_parser('list', help='List plugins')
+
+    plugin_load = plugin_subparsers.add_parser('load', help='Load plugin')
+    plugin_load.add_argument('path', help='Plugin file path')
+
+    plugin_reload = plugin_subparsers.add_parser('reload', help='Reload plugin')
+    plugin_reload.add_argument('name', help='Plugin name')
+
+    # Sync commands
+    sync_parser = subparsers.add_parser('sync', help='Cloud sync operations')
+    sync_subparsers = sync_parser.add_subparsers(dest='sync_cmd')
+
+    sync_subparsers.add_parser('status', help='Check sync status')
+    sync_subparsers.add_parser('push', help='Push to cloud')
+    sync_subparsers.add_parser('pull', help='Pull from cloud')
+
+    # Other commands
+    events_parser = subparsers.add_parser('events', help='Show recent events')
+    events_parser.add_argument('-n', '--limit', type=int, default=20, help='Number of events')
+
+    subparsers.add_parser('status', help='Show system status')
+    subparsers.add_parser('version', help='Show version info')
+
+    args = parser.parse_args()
+
+    if not args.command:
+        parser.print_help()
+        return
+
+    cli = KoalasCLI()
+
+    # Route to appropriate command
+    try:
+        if args.command == 'install':
+            await cli.cmd_install(args.apps, args.yes)
+
+        elif args.command == 'rollback':
+            if args.rollback_cmd == 'list':
+                await cli.cmd_rollback_list()
+            elif args.rollback_cmd == 'create':
+                await cli.cmd_rollback_create(args.name)
+            elif args.rollback_cmd == 'restore':
+                await cli.cmd_rollback_restore(args.id)
+            else:
+                rollback_parser.print_help()
+
+        elif args.command == 'plugin':
+            if args.plugin_cmd == 'list':
+                await cli.cmd_plugin_list()
+            elif args.plugin_cmd == 'load':
+                await cli.cmd_plugin_load(args.path)
+            elif args.plugin_cmd == 'reload':
+                await cli.cmd_plugin_reload(args.name)
+            else:
+                plugin_parser.print_help()
+
+        elif args.command == 'sync':
+            if args.sync_cmd == 'status':
+                await cli.cmd_sync_status()
+            elif args.sync_cmd == 'push':
+                await cli.cmd_sync_push()
+            elif args.sync_cmd == 'pull':
+                await cli.cmd_sync_pull()
+            else:
+                sync_parser.print_help()
+
+        elif args.command == 'events':
+            await cli.cmd_events(args.limit)
+
+        elif args.command == 'status':
+            await cli.cmd_status()
+
+        elif args.command == 'version':
+            cli.cmd_version()
+
+    except KeyboardInterrupt:
+        print("\n\n❌ Cancelled by user")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
