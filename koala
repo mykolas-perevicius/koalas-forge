@@ -52,6 +52,8 @@ from src.core.installer import PackageInstaller, get_installer
 from src.core.config import Config, get_config
 from src.core.updater import get_update_checker
 from src.core.history import get_history
+from src.core.history_privacy import get_enhanced_history
+from src.core.self_test import get_self_test
 from datetime import datetime
 
 
@@ -66,7 +68,9 @@ class KoalasCLI:
         self.installer = get_installer()
         self.config = get_config()
         self.history = get_history()
-        self.version = "1.7.0"
+        self.enhanced_history = get_enhanced_history()
+        self.self_test = get_self_test()
+        self.version = "1.8.0"
 
     async def cmd_install(self, apps: List[str], yes: bool = False, dry_run: bool = False, sequential: bool = False, force: bool = False):
         """Install applications with parallel-by-default and auto-fallback"""
@@ -182,6 +186,18 @@ class KoalasCLI:
                         'forced': force
                     }
                 )
+
+                # Enhanced history with breakage detection
+                breakage = self.enhanced_history.record_action_with_state(
+                    package=app,
+                    action='install',
+                    success=True,
+                    details={'parallel': not sequential and len(apps) > 1}
+                )
+                if breakage:
+                    print(f"\n⚠️  WARNING: {app} may have broken {', '.join(breakage.affected_packages)}")
+                    print(f"   Suggested fix: {breakage.recovery_action}")
+
             for app, error in failed:
                 self.history.add_entry(
                     package=app,
@@ -1355,6 +1371,146 @@ class KoalasCLI:
                 print(f"     - {pkg}")
             print(f"\n   💡 Run './koala install {' '.join(missing_packages)}' to reinstall")
 
+    async def cmd_privacy(self, action: str = None, key: str = None, value: str = None):
+        """Manage privacy settings for history tracking"""
+        if not action or action == 'status':
+            # Show privacy status
+            report = self.enhanced_history.get_privacy_report()
+
+            print(f"\n🔒 Privacy Settings\n")
+            print(f"{'='*80}")
+            print(f"Tracking Enabled: {'✅ Yes' if report['tracking_enabled'] else '❌ No'}")
+            print(f"Anonymization: {'✅ On' if report['anonymization'] else '❌ Off'}")
+            print(f"Auto-clear: {report['auto_clear_days']} days" if report['auto_clear_days'] else "Auto-clear: Disabled")
+
+            print(f"\n📊 Data Collected:")
+            data = report['data_collected']
+            print(f"   System states: {data['system_states']}")
+            print(f"   Breakage events: {data['breakage_events']}")
+            if data['oldest_entry']:
+                print(f"   Oldest entry: {data['oldest_entry'][:10]}")
+            print(f"   Storage used: {data.get('storage_size_kb', 0):.1f} KB")
+
+            print(f"\n💡 Commands:")
+            print(f"   ./koala privacy clear - Clear all history")
+            print(f"   ./koala privacy disable - Disable tracking")
+            print(f"   ./koala privacy enable - Enable tracking")
+            print(f"   ./koala privacy set <key> <value> - Update setting")
+            print(f"   ./koala privacy export - Export anonymized data")
+
+        elif action == 'clear':
+            print(f"\n⚠️  WARNING: This will permanently delete all history data!")
+            confirm = input("Type 'yes' to confirm: ")
+            if confirm.lower() == 'yes':
+                self.enhanced_history.clear_all_history(confirm=True)
+            else:
+                print("❌ Cancelled")
+
+        elif action == 'disable':
+            self.enhanced_history.privacy.set('tracking_enabled', False)
+            print("✅ History tracking disabled")
+
+        elif action == 'enable':
+            self.enhanced_history.privacy.set('tracking_enabled', True)
+            print("✅ History tracking enabled")
+
+        elif action == 'set' and key and value:
+            # Set a privacy configuration value
+            if key in ['auto_clear_days']:
+                value = int(value)
+            elif key in ['anonymize_packages', 'track_system_state', 'track_performance']:
+                value = value.lower() in ['true', 'yes', '1']
+
+            self.enhanced_history.privacy.set(key, value)
+            print(f"✅ Set {key} = {value}")
+
+        elif action == 'export':
+            output_file = f"koala-privacy-export-{datetime.now().strftime('%Y%m%d')}.json"
+            self.enhanced_history.export_anonymized(output_file)
+
+        else:
+            print("❌ Invalid privacy command. Use: status, clear, disable, enable, set, export")
+
+    async def cmd_self_test(self, quick: bool = False):
+        """Run self-tests to verify Koala's Forge is working correctly"""
+        print(f"\n🧪 Running Self-Tests...\n")
+
+        if quick:
+            # Run only essential tests
+            test_methods = [
+                self.self_test.test_core_systems,
+                self.self_test.test_cli_commands,
+            ]
+            suite_name = "Quick Test"
+        else:
+            # Run all tests
+            suite = await self.self_test.run_all_tests()
+
+            # Display results
+            print(f"{'='*80}")
+            print(f"📊 Test Results: {suite.summary()}\n")
+
+            # Show failed tests
+            failed_tests = [r for r in suite.results if not r.passed]
+            if failed_tests:
+                print(f"❌ Failed Tests:")
+                for test in failed_tests:
+                    print(f"   • {test.name}: {test.message}")
+                print()
+
+            # Show passed tests summary
+            passed_tests = [r for r in suite.results if r.passed]
+            if passed_tests:
+                print(f"✅ Passed {len(passed_tests)} test(s)")
+
+            # Performance summary
+            total_time = sum(r.duration_ms for r in suite.results)
+            print(f"\n⏱️  Total test time: {total_time:.0f}ms")
+
+            # Recommendations
+            if not suite.passed:
+                print(f"\n💡 Recommendations:")
+
+                # Check for specific issues
+                for test in failed_tests:
+                    if 'Homebrew' in test.name:
+                        print(f"   • Install Homebrew: /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"")
+                    elif 'Memory' in test.name:
+                        print(f"   • High memory usage detected. Consider restarting.")
+                    elif 'Command' in test.name:
+                        print(f"   • CLI commands failing. Run './koala doctor --fix'")
+
+            return suite
+
+    async def cmd_breakages(self, package: str = None, days: int = 7):
+        """View recent breakage events"""
+        print(f"\n⚠️  Recent Breakage Events\n")
+
+        if package:
+            breakages = self.enhanced_history.get_breakages_by_package(package)
+            print(f"Showing breakages caused by: {package}\n")
+        else:
+            breakages = self.enhanced_history.get_recent_breakages(days)
+            print(f"Showing breakages from last {days} days\n")
+
+        if not breakages:
+            print("✅ No breakages detected!")
+            return
+
+        print(f"{'='*80}")
+        for b in breakages:
+            timestamp = datetime.fromisoformat(b.timestamp)
+            print(f"\n{timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
+            print(f"   Suspected cause: {b.suspected_cause}")
+            print(f"   Affected: {', '.join(b.affected_packages)}")
+            print(f"   Type: {b.error_type}")
+            print(f"   Confidence: {b.confidence*100:.0f}%")
+            if b.recovery_action:
+                print(f"   💡 Suggested fix: {b.recovery_action}")
+
+        print(f"\n{'='*80}")
+        print(f"Total breakages: {len(breakages)}")
+
 
 async def main():
     """Main entry point"""
@@ -1498,6 +1654,21 @@ async def main():
     verify_parser = subparsers.add_parser('verify', help='Verify installed packages')
     verify_parser.add_argument('packages', nargs='*', help='Specific packages to verify (default: all)')
 
+    # Privacy command
+    privacy_parser = subparsers.add_parser('privacy', help='Manage privacy settings')
+    privacy_parser.add_argument('action', nargs='?', choices=['status', 'clear', 'disable', 'enable', 'set', 'export'], default='status', help='Privacy action')
+    privacy_parser.add_argument('key', nargs='?', help='Setting key (for set action)')
+    privacy_parser.add_argument('value', nargs='?', help='Setting value (for set action)')
+
+    # Self-test command
+    selftest_parser = subparsers.add_parser('self-test', help='Run self-tests')
+    selftest_parser.add_argument('--quick', action='store_true', help='Run quick tests only')
+
+    # Breakages command
+    breakages_parser = subparsers.add_parser('breakages', help='View breakage events')
+    breakages_parser.add_argument('--package', help='Filter by package')
+    breakages_parser.add_argument('--days', type=int, default=7, help='Number of days to look back (default: 7)')
+
     subparsers.add_parser('version', aliases=['v'], help='Show version info')
 
     args = parser.parse_args()
@@ -1627,6 +1798,26 @@ async def main():
         elif args.command == 'verify':
             packages = getattr(args, 'packages', None)
             await cli.cmd_verify(packages if packages else None)
+
+        elif args.command == 'privacy':
+            if hasattr(args, 'privacy_cmd'):
+                await cli.cmd_privacy(
+                    action=args.privacy_cmd,
+                    days=getattr(args, 'days', None)
+                )
+            else:
+                await cli.cmd_privacy('status')
+
+        elif args.command == 'self-test':
+            await cli.cmd_self_test(
+                quick=getattr(args, 'quick', False)
+            )
+
+        elif args.command == 'breakages':
+            await cli.cmd_breakages(
+                package=getattr(args, 'package', None),
+                days=getattr(args, 'days', 7)
+            )
 
         elif args.command in ('version', 'v'):
             cli.cmd_version()

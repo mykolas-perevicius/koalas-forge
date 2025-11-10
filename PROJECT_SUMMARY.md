@@ -1,6 +1,6 @@
 # 🐨 Koala's Forge - Project Summary
 
-**Version:** 1.7.0
+**Version:** 1.8.0
 **Status:** Production Ready
 **Repository:** https://github.com/mykolas-perevicius/koalas-forge
 
@@ -19,6 +19,9 @@ Koala's Forge is a comprehensive, production-ready package management system fea
 - **⚡ Parallel-by-Default** - Install multiple packages concurrently with auto-fallback
 - **📜 Install History** - Track all package operations (v1.7.0)
 - **🔍 Verify Command** - Verify installed packages (v1.7.0)
+- **🔒 Privacy Controls** - Manage history tracking and anonymization (v1.8.0)
+- **🔍 Breakage Detection** - Pinpoint when packages broke others (v1.8.0)
+- **🧪 Self-Test System** - Comprehensive self-testing framework (v1.8.0)
 - **🎯 Advanced Search** - Search with --installed and --category filters (v1.7.0)
 - **🚀 Shell Completions** - Bash and zsh tab completion (v1.6.0)
 - **📥 Import Command** - Import packages from txt/json/yaml (v1.6.0)
@@ -36,7 +39,7 @@ Koala's Forge is a comprehensive, production-ready package management system fea
 
 ## 🎯 Current Capabilities
 
-### CLI Commands (26 Total)
+### CLI Commands (29 Total)
 
 #### Package Management
 - `install <apps> [-f|--force]` - Install packages with auto-rollback (--force to reinstall)
@@ -68,6 +71,9 @@ Koala's Forge is a comprehensive, production-ready package management system fea
 - `cleanup [--keep N] [--dry-run]` - Clean up old rollback snapshots
 - `history [--limit N] [--package] [--action]` - **NEW v1.7** View installation history
 - `verify [packages...]` - **NEW v1.7** Verify installed packages
+- `privacy [status|clear|enable|disable|export]` - **NEW v1.8** Manage privacy settings
+- `self-test [--quick]` - **NEW v1.8** Run comprehensive self-tests
+- `breakages [--package] [--days]` - **NEW v1.8** View breakage events
 
 #### Configuration & Cloud
 - `config show/get/set/init` - **NEW** Configuration management
@@ -145,15 +151,15 @@ Koala's Forge is a comprehensive, production-ready package management system fea
 ## 📊 Statistics
 
 ### Code Metrics
-- **Total Lines Written:** ~6,000 production code
-- **Core Systems:** 9 modules, 3,000+ lines (added history.py - 250 lines)
-- **CLI Tool:** 1,600+ lines (v1.7: history, verify, enhanced search)
+- **Total Lines Written:** ~7,000+ production code
+- **Core Systems:** 11 modules, 3,900+ lines (added history_privacy.py & self_test.py)
+- **CLI Tool:** 1,800+ lines (v1.8: privacy, self-test, breakages commands)
 - **Plugins:** 4 plugins, 800+ lines
 - **Shell Completions:** bash + zsh support
 - **Documentation:** 4 comprehensive guides
 
 ### Features
-- **26** CLI commands (full-featured CLI suite)
+- **29** CLI commands (full-featured CLI suite)
 - **250+** packages in database (58 → 253: 4.4x expansion!)
 - **14** package categories
 - **5** built-in presets
@@ -305,6 +311,7 @@ koalas-forge/
 - **v1.5.0** - 🩺 QUALITY OF LIFE UPDATE: Auto-update check, doctor command, cleanup tools, force reinstall
 - **v1.6.0** - 🚀 POWER USER UPDATE: Shell completions, import/export formats, list installed packages
 - **v1.7.0** - 📜 HISTORY & VERIFICATION UPDATE: Install history tracking, verify command, enhanced search
+- **v1.8.0** - 🔒 PRIVACY & TESTING UPDATE: Privacy controls, breakage detection, self-testing framework
 
 ---
 
@@ -393,5 +400,5 @@ The project is structured for easy contribution:
 
 ---
 
-**Koala's Forge v1.7.0** - Production-ready package management with style! 🐨
+**Koala's Forge v1.8.0** - Production-ready package management with style! 🐨
 
