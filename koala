@@ -1606,6 +1606,19 @@ class KoalasCLI:
         else:
             print("❌ No recovery plan available")
 
+    async def cmd_dashboard(self):
+        """Launch dashboard in browser and Electron GUI"""
+        print(f"\n🚀 Launching Koala's Forge Dashboard...\n")
+
+        try:
+            from src.dashboard.server import launch_dashboard
+            await launch_dashboard(open_browser=True, open_electron=True)
+        except KeyboardInterrupt:
+            print("\n👋 Dashboard stopped")
+        except Exception as e:
+            print(f"❌ Error launching dashboard: {e}")
+            print("💡 Try: pip install electron-python")
+
     async def cmd_recommend(self):
         """Get smart package recommendations"""
         print(f"\n✨ Smart Package Recommendations\n")
@@ -1802,6 +1815,8 @@ async def main():
 
     subparsers.add_parser('recommend', help='Get smart package recommendations')
 
+    subparsers.add_parser('dashboard', help='Launch web dashboard and GUI')
+
     subparsers.add_parser('version', aliases=['v'], help='Show version info')
 
     args = parser.parse_args()
@@ -1960,6 +1975,9 @@ async def main():
 
         elif args.command == 'recommend':
             await cli.cmd_recommend()
+
+        elif args.command == 'dashboard':
+            await cli.cmd_dashboard()
 
         elif args.command in ('version', 'v'):
             cli.cmd_version()

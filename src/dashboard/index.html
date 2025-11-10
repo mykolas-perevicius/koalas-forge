@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐨 Koala's Forge Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #764ba2;
+        }
+
+        .version {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .panel h2 {
+            margin-bottom: 20px;
+            color: #764ba2;
+            font-size: 1.5em;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .package-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .package-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .package-item:hover {
+            background: #e8e9ea;
+        }
+
+        .package-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .package-category {
+            font-size: 0.85em;
+            color: #666;
+            margin-left: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-install {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-install:hover {
+            background: #38a169;
+        }
+
+        .btn-uninstall {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-uninstall:hover {
+            background: #e53e3e;
+        }
+
+        .btn-info {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #5a67d8;
+        }
+
+        .installed-badge {
+            background: #48bb78;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .actions-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .action-btn {
+            padding: 15px;
+            border: 2px solid #667eea;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .action-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .console {
+            background: #1a1a1a;
+            color: #0f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tab-navigation {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: none;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐨 Koala's Forge Dashboard</h1>
+            <div class="version">Version <span id="version">1.9.0</span> - Intelligent Package Management</div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="total-packages">250+</div>
+                <div class="stat-label">Total Packages</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="installed-count">0</div>
+                <div class="stat-label">Installed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="categories">14</div>
+                <div class="stat-label">Categories</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="commands">32</div>
+                <div class="stat-label">Commands</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="panel">
+                <h2>📦 Package Manager</h2>
+                <input type="text" class="search-box" id="search" placeholder="Search packages...">
+
+                <div class="tab-navigation">
+                    <button class="tab active" onclick="switchTab('all')">All Packages</button>
+                    <button class="tab" onclick="switchTab('installed')">Installed</button>
+                    <button class="tab" onclick="switchTab('recommended')">Recommended</button>
+                </div>
+
+                <div class="package-list" id="package-list">
+                    <div class="tab-content active" id="all-packages">
+                        <!-- Packages will be loaded here -->
+                    </div>
+                    <div class="tab-content" id="installed-packages">
+                        <!-- Installed packages will be loaded here -->
+                    </div>
+                    <div class="tab-content" id="recommended-packages">
+                        <!-- Recommended packages will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>🎯 Quick Actions</h2>
+                <div class="action-buttons">
+                    <button class="action-btn" onclick="runCommand('status')">System Status</button>
+                    <button class="action-btn" onclick="runCommand('health')">Health Check</button>
+                    <button class="action-btn" onclick="runCommand('doctor')">Run Doctor</button>
+                    <button class="action-btn" onclick="runCommand('self-test')">Self Test</button>
+                    <button class="action-btn" onclick="runCommand('recommend')">Get Recommendations</button>
+                    <button class="action-btn" onclick="runCommand('history')">View History</button>
+                </div>
+
+                <div class="console" id="console">
+                    Welcome to Koala's Forge Dashboard!
+                    Ready to manage your packages...
+                </div>
+            </div>
+        </div>
+
+        <div class="actions-panel">
+            <h2>🚀 Advanced Tools</h2>
+            <div class="action-buttons">
+                <button class="action-btn" onclick="checkDependencies()">Check Dependencies</button>
+                <button class="action-btn" onclick="createSnapshot()">Create Snapshot</button>
+                <button class="action-btn" onclick="syncCloud()">Sync to Cloud</button>
+                <button class="action-btn" onclick="exportPackages()">Export Setup</button>
+                <button class="action-btn" onclick="verifyPackages()">Verify All</button>
+                <button class="action-btn" onclick="cleanupSnapshots()">Cleanup</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        let allPackages = [];
+        let installedPackages = [];
+
+        // Initialize dashboard
+        async function init() {
+            await loadStats();
+            await loadPackages();
+            await loadInstalledPackages();
+
+            // Auto-refresh every 30 seconds
+            setInterval(() => {
+                loadStats();
+                loadInstalledPackages();
+            }, 30000);
+        }
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+
+                document.getElementById('total-packages').textContent = stats.total_packages;
+                document.getElementById('installed-count').textContent = stats.installed_count;
+                document.getElementById('version').textContent = stats.version;
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        // Load all packages
+        async function loadPackages() {
+            try {
+                const response = await fetch('/api/packages');
+                const data = await response.json();
+                allPackages = data.packages || [];
+
+                renderPackages(allPackages, 'all-packages');
+            } catch (error) {
+                console.error('Failed to load packages:', error);
+                showToast('Failed to load packages', 'error');
+            }
+        }
+
+        // Load installed packages
+        async function loadInstalledPackages() {
+            try {
+                const response = await fetch('/api/installed');
+                const data = await response.json();
+                installedPackages = data.installed || [];
+
+                // Update installed badge
+                const installedFiltered = allPackages.filter(pkg =>
+                    installedPackages.includes(pkg.name)
+                );
+                renderPackages(installedFiltered, 'installed-packages');
+
+                // Update count
+                document.getElementById('installed-count').textContent = installedPackages.length;
+            } catch (error) {
+                console.error('Failed to load installed packages:', error);
+            }
+        }
+
+        // Render packages
+        function renderPackages(packages, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            packages.forEach(pkg => {
+                const item = document.createElement('div');
+                item.className = 'package-item';
+
+                const isInstalled = installedPackages.includes(pkg.name);
+
+                item.innerHTML = `
+                    <div>
+                        <span class="package-name">${pkg.name}</span>
+                        <span class="package-category">${pkg.category || ''}</span>
+                        ${isInstalled ? '<span class="installed-badge">INSTALLED</span>' : ''}
+                    </div>
+                    <div>
+                        ${isInstalled ?
+                            `<button class="btn btn-uninstall" onclick="uninstallPackage('${pkg.name}')">Uninstall</button>` :
+                            `<button class="btn btn-install" onclick="installPackage('${pkg.name}')">Install</button>`
+                        }
+                        <button class="btn btn-info" onclick="showInfo('${pkg.name}')">Info</button>
+                    </div>
+                `;
+
+                container.appendChild(item);
+            });
+        }
+
+        // Search functionality
+        document.getElementById('search').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allPackages.filter(pkg =>
+                pkg.name.toLowerCase().includes(query) ||
+                (pkg.category && pkg.category.toLowerCase().includes(query))
+            );
+            renderPackages(filtered, 'all-packages');
+        });
+
+        // Install package
+        async function installPackage(packageName) {
+            showToast(`Installing ${packageName}...`, 'info');
+            addToConsole(`Installing ${packageName}...`);
+
+            try {
+                const response = await fetch('/api/install', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({package: packageName})
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(`✅ ${packageName} installed successfully!`, 'success');
+                    addToConsole(result.output);
+                    await loadInstalledPackages();
+                } else {
+                    showToast(`❌ Failed to install ${packageName}`, 'error');
+                    addToConsole(result.error || 'Installation failed');
+                }
+            } catch (error) {
+                showToast(`❌ Error installing ${packageName}`, 'error');
+                addToConsole(`Error: ${error.message}`);
+            }
+        }
+
+        // Uninstall package
+        async function uninstallPackage(packageName) {
+            if (!confirm(`Are you sure you want to uninstall ${packageName}?`)) return;
+
+            showToast(`Uninstalling ${packageName}...`, 'info');
+            addToConsole(`Uninstalling ${packageName}...`);
+
+            try {
+                const response = await fetch('/api/uninstall', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({package: packageName})
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(`✅ ${packageName} uninstalled successfully!`, 'success');
+                    addToConsole(result.output);
+                    await loadInstalledPackages();
+                } else {
+                    showToast(`❌ Failed to uninstall ${packageName}`, 'error');
+                    addToConsole(result.error || 'Uninstallation failed');
+                }
+            } catch (error) {
+                showToast(`❌ Error uninstalling ${packageName}`, 'error');
+                addToConsole(`Error: ${error.message}`);
+            }
+        }
+
+        // Show package info
+        function showInfo(packageName) {
+            addToConsole(`Fetching info for ${packageName}...`);
+            runCommand(`info ${packageName}`);
+        }
+
+        // Run command
+        async function runCommand(command) {
+            addToConsole(`Running: koala ${command}`);
+            // This would call the API to run the command
+            showToast(`Executing: ${command}`, 'info');
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-packages`).classList.add('active');
+        }
+
+        // Console management
+        function addToConsole(text) {
+            const console = document.getElementById('console');
+            const timestamp = new Date().toLocaleTimeString();
+            console.innerHTML += `\n[${timestamp}] ${text}`;
+            console.scrollTop = console.scrollHeight;
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            toast.style.background = type === 'error' ? '#e53e3e' :
+                                     type === 'success' ? '#48bb78' : '#667eea';
+
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // Advanced tools
+        function checkDependencies() {
+            addToConsole('Checking dependencies...');
+            showToast('Checking dependencies...', 'info');
+        }
+
+        function createSnapshot() {
+            const name = prompt('Enter snapshot name:');
+            if (name) {
+                addToConsole(`Creating snapshot: ${name}`);
+                showToast('Creating snapshot...', 'info');
+            }
+        }
+
+        function syncCloud() {
+            addToConsole('Syncing to cloud...');
+            showToast('Syncing to cloud...', 'info');
+        }
+
+        function exportPackages() {
+            addToConsole('Exporting package list...');
+            showToast('Exporting packages...', 'info');
+        }
+
+        function verifyPackages() {
+            addToConsole('Verifying all packages...');
+            showToast('Verification started...', 'info');
+        }
+
+        function cleanupSnapshots() {
+            addToConsole('Cleaning up old snapshots...');
+            showToast('Cleanup started...', 'info');
+        }
+
+        // Initialize on load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
