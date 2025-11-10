@@ -64,7 +64,7 @@ class KoalasCLI:
         self.cloud_sync = CloudSyncManager()
         self.installer = get_installer()
         self.config = get_config()
-        self.version = "1.5.0"
+        self.version = "1.6.0"
 
     async def cmd_install(self, apps: List[str], yes: bool = False, dry_run: bool = False, sequential: bool = False, force: bool = False):
         """Install applications with parallel-by-default and auto-fallback"""
@@ -263,7 +263,38 @@ class KoalasCLI:
         """List available or installed applications"""
 
         if installed:
-            print("ℹ️  Listing installed packages not yet implemented")
+            print(f"\n📦 Checking installed packages...\n")
+
+            # Get all packages
+            all_packages = self.installer.list_packages(category=category)
+
+            # Check which ones are installed
+            installed_packages = []
+            for pkg in all_packages:
+                if await self.installer.is_installed(pkg.package):
+                    installed_packages.append(pkg)
+
+            if not installed_packages:
+                print(f"No installed packages found{' in this category' if category else ''}")
+                return
+
+            # Group by category
+            by_category = {}
+            for pkg in installed_packages:
+                if pkg.category not in by_category:
+                    by_category[pkg.category] = []
+                by_category[pkg.category].append(pkg)
+
+            print(f"✅ Found {len(installed_packages)} installed package(s)\n")
+
+            for cat, pkgs in sorted(by_category.items()):
+                print(f"\n{cat.replace('_', ' ').title()} ({len(pkgs)} packages)")
+                print("-" * 60)
+
+                for pkg in pkgs:
+                    platforms = ', '.join(pkg.platforms[:3])
+                    print(f"  ✅ {pkg.name:<25} ({platforms})")
+
             return
 
         if category:
@@ -452,12 +483,117 @@ class KoalasCLI:
         except Exception as e:
             print(f"❌ Error reading file: {e}")
 
-    async def cmd_export(self, output_file: str = None):
-        """Export list of installed packages to a file"""
-        if not output_file:
-            output_file = f"koala-setup-{datetime.now().strftime('%Y%m%d')}.txt"
+    async def cmd_import(self, file_path: str, dry_run: bool = False):
+        """Import and install packages from a file (supports txt, json, yaml)"""
+        try:
+            # Auto-detect format from file extension
+            format = 'txt'
+            if '.' in file_path:
+                ext = file_path.rsplit('.', 1)[1].lower()
+                if ext in ['json', 'yaml', 'yml']:
+                    format = 'yaml' if ext == 'yml' else ext
 
-        print(f"📤 Exporting installed packages...\n")
+            print(f"📥 Importing packages from {format.upper()} file...\n")
+
+            packages = []
+
+            if format == 'json':
+                with open(file_path, 'r') as f:
+                    data = json.load(f)
+
+                # Handle both flat list and structured format
+                if isinstance(data, list):
+                    packages = data
+                elif isinstance(data, dict):
+                    if 'packages' in data:
+                        # Structured format
+                        for category, pkgs in data['packages'].items():
+                            if isinstance(pkgs, list):
+                                for pkg in pkgs:
+                                    if isinstance(pkg, dict):
+                                        packages.append(pkg.get('package', pkg.get('name', '')))
+                                    else:
+                                        packages.append(str(pkg))
+                    else:
+                        # Flat dict
+                        packages = list(data.values())
+
+            elif format == 'yaml':
+                import yaml
+                with open(file_path, 'r') as f:
+                    data = yaml.safe_load(f)
+
+                # Handle both flat list and structured format
+                if isinstance(data, list):
+                    packages = data
+                elif isinstance(data, dict):
+                    if 'packages' in data:
+                        # Structured format
+                        for category, pkgs in data['packages'].items():
+                            if isinstance(pkgs, list):
+                                packages.extend(pkgs)
+                    else:
+                        # Flat dict
+                        packages = list(data.values())
+
+            else:  # txt format
+                with open(file_path, 'r') as f:
+                    lines = f.readlines()
+
+                # Parse packages (skip comments and empty lines)
+                for line in lines:
+                    line = line.strip()
+                    if line and not line.startswith('#'):
+                        packages.append(line)
+
+            if not packages:
+                print(f"❌ No packages found in {file_path}")
+                return
+
+            # Clean up package names
+            packages = [str(pkg).strip() for pkg in packages if pkg]
+            packages = [pkg for pkg in packages if pkg]  # Remove empty strings
+
+            print(f"📄 Import summary:")
+            print(f"   File: {file_path}")
+            print(f"   Format: {format.upper()}")
+            print(f"   Packages: {len(packages)}\n")
+
+            if dry_run:
+                print("🔍 DRY RUN MODE - Would install:\n")
+                for pkg in packages[:20]:  # Show first 20
+                    print(f"  • {pkg}")
+                if len(packages) > 20:
+                    print(f"  ... and {len(packages) - 20} more")
+                return
+
+            # Install all packages
+            await self.cmd_install(packages, yes=True, dry_run=False)
+
+        except FileNotFoundError:
+            print(f"❌ File not found: {file_path}")
+        except ImportError as e:
+            if 'yaml' in str(e):
+                print(f"❌ YAML support requires PyYAML: pip install pyyaml")
+            else:
+                print(f"❌ Error: {e}")
+        except json.JSONDecodeError as e:
+            print(f"❌ Invalid JSON format: {e}")
+        except Exception as e:
+            print(f"❌ Error reading file: {e}")
+
+    async def cmd_export(self, output_file: str = None, format: str = "txt"):
+        """Export list of installed packages to a file"""
+        # Auto-detect format from file extension if not specified
+        if output_file and '.' in output_file:
+            ext = output_file.rsplit('.', 1)[1].lower()
+            if ext in ['json', 'yaml', 'yml', 'txt']:
+                format = 'yaml' if ext == 'yml' else ext
+
+        if not output_file:
+            output_file = f"koala-setup-{datetime.now().strftime('%Y%m%d')}.{format}"
+
+        print(f"📤 Exporting installed packages to {format.upper()} format...\n")
 
         # Get all packages
         all_packages = self.installer.list_packages()
@@ -472,32 +608,86 @@ class KoalasCLI:
             print("❌ No installed packages found")
             return
 
+        # Group by category
+        by_category = {}
+        for pkg in installed_packages:
+            if pkg.category not in by_category:
+                by_category[pkg.category] = []
+            by_category[pkg.category].append(pkg)
+
         # Write to file
         try:
-            with open(output_file, 'w') as f:
-                f.write(f"# Koala's Forge Setup - {datetime.now().strftime('%Y-%m-%d %H:%M')}\n")
-                f.write(f"# Installed packages: {len(installed_packages)}\n")
-                f.write(f"# To restore: ./koala batch {output_file}\n\n")
-
-                # Group by category
-                by_category = {}
-                for pkg in installed_packages:
-                    if pkg.category not in by_category:
-                        by_category[pkg.category] = []
-                    by_category[pkg.category].append(pkg)
+            if format == 'json':
+                # JSON format
+                export_data = {
+                    'metadata': {
+                        'exported_at': datetime.now().isoformat(),
+                        'total_packages': len(installed_packages),
+                        'koala_version': self.version
+                    },
+                    'packages': {}
+                }
 
                 for category in sorted(by_category.keys()):
-                    f.write(f"\n# {category.replace('_', ' ').title()}\n")
-                    for pkg in by_category[category]:
-                        pkg_name = pkg.name.lower().replace(' ', '-')
-                        f.write(f"{pkg_name}\n")
+                    export_data['packages'][category] = [
+                        {
+                            'name': pkg.name,
+                            'package': pkg.name.lower().replace(' ', '-'),
+                            'platforms': pkg.platforms,
+                            'install_type': pkg.install_type
+                        }
+                        for pkg in by_category[category]
+                    ]
+
+                with open(output_file, 'w') as f:
+                    json.dump(export_data, f, indent=2)
+
+            elif format == 'yaml':
+                # YAML format
+                import yaml
+                export_data = {
+                    'metadata': {
+                        'exported_at': datetime.now().isoformat(),
+                        'total_packages': len(installed_packages),
+                        'koala_version': self.version
+                    },
+                    'packages': {}
+                }
+
+                for category in sorted(by_category.keys()):
+                    export_data['packages'][category] = [
+                        pkg.name.lower().replace(' ', '-')
+                        for pkg in by_category[category]
+                    ]
+
+                with open(output_file, 'w') as f:
+                    yaml.dump(export_data, f, default_flow_style=False, sort_keys=False)
+
+            else:  # txt format (default)
+                with open(output_file, 'w') as f:
+                    f.write(f"# Koala's Forge Setup - {datetime.now().strftime('%Y-%m-%d %H:%M')}\n")
+                    f.write(f"# Installed packages: {len(installed_packages)}\n")
+                    f.write(f"# To restore: ./koala batch {output_file}\n")
+                    f.write(f"# Or: ./koala import {output_file}\n\n")
+
+                    for category in sorted(by_category.keys()):
+                        f.write(f"\n# {category.replace('_', ' ').title()}\n")
+                        for pkg in by_category[category]:
+                            pkg_name = pkg.name.lower().replace(' ', '-')
+                            f.write(f"{pkg_name}\n")
 
             print(f"✅ Exported {len(installed_packages)} package(s) to: {output_file}")
             print(f"\nTo restore on another machine:")
-            print(f"  ./koala batch {output_file}")
+            print(f"  ./koala import {output_file}")
+            print(f"  # or: ./koala batch {output_file}")
             print(f"\nTo sync via cloud:")
             print(f"  ./koala sync push")
 
+        except ImportError as e:
+            if 'yaml' in str(e):
+                print(f"❌ YAML support requires PyYAML: pip install pyyaml")
+            else:
+                print(f"❌ Error: {e}")
         except Exception as e:
             print(f"❌ Error writing file: {e}")
 
@@ -1091,6 +1281,12 @@ async def main():
     # Export command
     export_parser = subparsers.add_parser('export', help='Export installed packages to file')
     export_parser.add_argument('output', nargs='?', help='Output file path (default: koala-setup-YYYYMMDD.txt)')
+    export_parser.add_argument('--format', choices=['txt', 'json', 'yaml'], default='txt', help='Export format (default: txt)')
+
+    # Import command
+    import_parser = subparsers.add_parser('import', help='Import and install packages from file (txt, json, yaml)')
+    import_parser.add_argument('file', help='File to import from')
+    import_parser.add_argument('--dry-run', action='store_true', help='Show what would be installed')
 
     # Compare command
     compare_parser = subparsers.add_parser('compare', help='Compare current setup with a file')
@@ -1208,7 +1404,10 @@ async def main():
             await cli.cmd_batch(args.file, dry_run=getattr(args, 'dry_run', False))
 
         elif args.command == 'export':
-            await cli.cmd_export(args.output)
+            await cli.cmd_export(args.output, format=getattr(args, 'format', 'txt'))
+
+        elif args.command == 'import':
+            await cli.cmd_import(args.file, dry_run=getattr(args, 'dry_run', False))
 
         elif args.command == 'compare':
             await cli.cmd_compare(args.file)

@@ -1,0 +1,189 @@
+#compdef koala
+
+# Zsh completion script for Koala's Forge CLI
+# Installation: Copy to a directory in your $fpath (e.g., /usr/local/share/zsh/site-functions/)
+
+_koala() {
+    local -a commands categories presets config_keys
+
+    commands=(
+        'install:Install packages with auto-rollback'
+        'update:Update specific packages'
+        'uninstall:Remove packages safely'
+        'list:Browse available packages'
+        'search:Search for packages'
+        'categories:List all categories'
+        'info:Show detailed package info'
+        'preset:Install preset collections'
+        'batch:Install from package list file'
+        'export:Export installed packages'
+        'compare:Compare current setup with file'
+        'import:Import package list'
+        'rollback:Manage rollback snapshots'
+        'plugin:Manage plugins'
+        'sync:Cloud synchronization'
+        'events:Show recent events'
+        'status:Show system status'
+        'version:Show version info'
+        'health:System health check'
+        'config:Configuration management'
+        'doctor:Diagnose and fix issues'
+        'cleanup:Clean up old snapshots'
+    )
+
+    categories=(
+        'ai_local:Local AI and LLM tools'
+        'development_core:Core development languages'
+        'development_tools:Development tools and IDEs'
+        'databases:Database systems'
+        'containers:Container tools'
+        'cloud_tools:Cloud infrastructure tools'
+        'terminal_tools:Modern terminal tools'
+        'security:Security and privacy tools'
+        'productivity:Productivity applications'
+        'communication:Communication tools'
+        'browsers:Web browsers'
+        'gaming:Gaming platforms'
+        'creative:Creative software'
+        'audio:Audio tools'
+    )
+
+    presets=(
+        'list:List all available presets'
+        'ai-developer:AI development environment'
+        'full-stack-developer:Complete dev environment'
+        'data-scientist:Data science tools'
+        'creative-professional:Creative suite'
+        'system-administrator:System admin tools'
+    )
+
+    config_keys=(
+        'parallel_downloads:Number of concurrent downloads'
+        'cache_retention:Cache retention period'
+        'notification_enabled:Enable notifications'
+        'auto_update_check:Enable auto-update checking'
+        'log_level:Logging level'
+    )
+
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+
+    _arguments -C \
+        '1: :->command' \
+        '*:: :->args'
+
+    case $state in
+        command)
+            _describe 'koala commands' commands
+            ;;
+        args)
+            case $line[1] in
+                install|i)
+                    _arguments \
+                        '-y[Auto confirm]' \
+                        '--dry-run[Preview without installing]' \
+                        '-s[Install sequentially]' \
+                        '--sequential[Install sequentially]' \
+                        '-f[Force reinstall]' \
+                        '--force[Force reinstall]' \
+                        '*:package:( )'
+                    ;;
+                update|u|upgrade)
+                    _arguments \
+                        '-y[Auto confirm]' \
+                        '--all[Update all packages]' \
+                        '*:package:( )'
+                    ;;
+                uninstall|remove|rm|r)
+                    _arguments \
+                        '-y[Auto confirm]' \
+                        '*:package:( )'
+                    ;;
+                list|ls)
+                    _arguments \
+                        '--installed[Show only installed]' \
+                        '--category[Filter by category]:category:->category'
+
+                    case $state in
+                        category)
+                            _describe 'categories' categories
+                            ;;
+                    esac
+                    ;;
+                search|s|find)
+                    _arguments \
+                        '1:search term:( )'
+                    ;;
+                info|show)
+                    _arguments \
+                        '1:package:( )'
+                    ;;
+                preset)
+                    _describe 'presets' presets
+                    ;;
+                batch|compare|import)
+                    _arguments \
+                        '1:file:_files'
+                    ;;
+                export)
+                    _arguments \
+                        '--format[Export format]:format:(txt json yaml)' \
+                        '1:output file:_files'
+                    ;;
+                rollback)
+                    local -a rollback_commands
+                    rollback_commands=(
+                        'list:List all snapshots'
+                        'create:Create new snapshot'
+                        'restore:Restore to snapshot'
+                    )
+                    _describe 'rollback commands' rollback_commands
+                    ;;
+                plugin)
+                    local -a plugin_commands
+                    plugin_commands=(
+                        'list:List loaded plugins'
+                        'load:Load a plugin'
+                        'reload:Reload a plugin'
+                    )
+                    _describe 'plugin commands' plugin_commands
+                    ;;
+                sync)
+                    local -a sync_commands
+                    sync_commands=(
+                        'status:Check sync status'
+                        'push:Push profile to cloud'
+                        'pull:Pull profile from cloud'
+                    )
+                    _describe 'sync commands' sync_commands
+                    ;;
+                config)
+                    local -a config_commands
+                    config_commands=(
+                        'show:Show current configuration'
+                        'get:Get configuration value'
+                        'set:Set configuration value'
+                        'init:Initialize configuration'
+                    )
+
+                    if [[ $CURRENT -eq 2 ]]; then
+                        _describe 'config commands' config_commands
+                    elif [[ $CURRENT -eq 3 && ($words[2] == "get" || $words[2] == "set") ]]; then
+                        _describe 'config keys' config_keys
+                    fi
+                    ;;
+                doctor)
+                    _arguments \
+                        '--fix[Automatically fix issues]'
+                    ;;
+                cleanup)
+                    _arguments \
+                        '--keep[Number of snapshots to keep]:number:( )' \
+                        '--dry-run[Preview without deleting]'
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+_koala "$@"
