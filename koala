@@ -41,6 +41,7 @@ from src.core.event_system import EventBus, Event, EventType, get_event_bus
 from src.core.plugin_system import PluginManager
 from src.core.rollback_system import RollbackManager
 from src.core.cloud_sync import CloudSyncManager
+from src.core.installer import PackageInstaller, get_installer
 from datetime import datetime
 
 
@@ -52,35 +53,187 @@ class KoalasCLI:
         self.plugin_manager = PluginManager(self.event_bus)
         self.rollback_manager = RollbackManager()
         self.cloud_sync = CloudSyncManager()
+        self.installer = get_installer()
         self.version = "1.2.0"
 
-    async def cmd_install(self, apps: List[str], yes: bool = False):
+    async def cmd_install(self, apps: List[str], yes: bool = False, dry_run: bool = False):
         """Install applications"""
         print(f"🐨 Installing {len(apps)} application(s)...")
 
-        # Create rollback point
-        snapshot_id = await self.rollback_manager.create_snapshot(f"Before installing {', '.join(apps)}")
-        print(f"📸 Created snapshot: {snapshot_id}")
+        if dry_run:
+            print("🔍 DRY RUN MODE - No actual changes will be made\n")
+
+        # Create rollback point (unless dry run)
+        if not dry_run:
+            snapshot_id = await self.rollback_manager.create_snapshot(f"Before installing {', '.join(apps)}")
+            print(f"📸 Created snapshot: {snapshot_id}\n")
+
+        installed = []
+        failed = []
+        already_installed = []
 
         for app in apps:
-            await self.event_bus.emit(Event(
-                type=EventType.INSTALL_STARTED,
-                data={'app': app, 'snapshot': snapshot_id},
-                source='cli'
-            ))
+            result = await self.installer.install(app, dry_run=dry_run)
 
-            # Here would be actual installation logic
-            print(f"  ⬇️  Installing {app}...")
-            await asyncio.sleep(0.5)  # Simulate install
+            if result.get('success'):
+                if result.get('already_installed'):
+                    already_installed.append(app)
+                else:
+                    installed.append(app)
+            else:
+                failed.append((app, result.get('error', 'Unknown error')))
+                print(f"  ❌ Failed to install {app}: {result.get('error')}")
 
-            await self.event_bus.emit(Event(
-                type=EventType.INSTALL_COMPLETED,
-                data={'app': app, 'success': True},
-                source='cli'
-            ))
-            print(f"  ✅ {app} installed successfully")
+        # Summary
+        print(f"\n✨ Installation complete!")
+        if installed:
+            print(f"   Installed: {len(installed)} app(s)")
+        if already_installed:
+            print(f"   Already installed: {len(already_installed)} app(s)")
+        if failed:
+            print(f"   Failed: {len(failed)} app(s)")
+            for app, error in failed:
+                print(f"     - {app}: {error}")
 
-        print(f"\n✨ Installation complete! Installed {len(apps)} app(s)")
+    async def cmd_update(self, apps: Optional[List[str]] = None, all: bool = False):
+        """Update applications"""
+        if all:
+            print("🐨 Updating all installed applications...")
+            # TODO: Get list of all installed apps
+            print("  ℹ️  Update all not yet implemented")
+            return
+
+        if not apps:
+            print("❌ Please specify apps to update or use --all")
+            return
+
+        print(f"🐨 Updating {len(apps)} application(s)...")
+
+        updated = []
+        failed = []
+
+        for app in apps:
+            result = await self.installer.update(app)
+
+            if result.get('success'):
+                updated.append(app)
+            else:
+                failed.append((app, result.get('error', 'Unknown error')))
+
+        # Summary
+        print(f"\n✨ Update complete!")
+        if updated:
+            print(f"   Updated: {len(updated)} app(s)")
+        if failed:
+            print(f"   Failed: {len(failed)} app(s)")
+            for app, error in failed:
+                print(f"     - {app}: {error}")
+
+    async def cmd_uninstall(self, apps: List[str], yes: bool = False):
+        """Uninstall applications"""
+        print(f"🐨 Uninstalling {len(apps)} application(s)...")
+
+        # Create rollback point
+        snapshot_id = await self.rollback_manager.create_snapshot(f"Before uninstalling {', '.join(apps)}")
+        print(f"📸 Created snapshot: {snapshot_id}\n")
+
+        uninstalled = []
+        failed = []
+        not_installed = []
+
+        for app in apps:
+            result = await self.installer.uninstall(app)
+
+            if result.get('success'):
+                if result.get('not_installed'):
+                    not_installed.append(app)
+                else:
+                    uninstalled.append(app)
+            else:
+                failed.append((app, result.get('error', 'Unknown error')))
+
+        # Summary
+        print(f"\n✨ Uninstall complete!")
+        if uninstalled:
+            print(f"   Uninstalled: {len(uninstalled)} app(s)")
+        if not_installed:
+            print(f"   Not installed: {len(not_installed)} app(s)")
+        if failed:
+            print(f"   Failed: {len(failed)} app(s)")
+            for app, error in failed:
+                print(f"     - {app}: {error}")
+
+    async def cmd_search(self, query: str):
+        """Search for applications"""
+        results = self.installer.search_packages(query)
+
+        if not results:
+            print(f"No packages found matching '{query}'")
+            return
+
+        print(f"\n🔍 Found {len(results)} package(s) matching '{query}':\n")
+        print(f"{'Name':<30} {'Category':<20} {'Platforms'}")
+        print("=" * 80)
+
+        for pkg in results[:20]:  # Limit to 20 results
+            platforms = ', '.join(pkg.platforms[:3])
+            print(f"{pkg.name:<30} {pkg.category:<20} {platforms}")
+
+            if pkg.notes:
+                print(f"    {pkg.notes[:60]}")
+                print()
+
+        if len(results) > 20:
+            print(f"\n... and {len(results) - 20} more results")
+
+    async def cmd_list(self, category: Optional[str] = None, installed: bool = False):
+        """List available or installed applications"""
+
+        if installed:
+            print("ℹ️  Listing installed packages not yet implemented")
+            return
+
+        if category:
+            print(f"\n📦 Packages in category '{category}':\n")
+            packages = self.installer.list_packages(category=category)
+        else:
+            print(f"\n📦 All available packages:\n")
+            packages = self.installer.list_packages()
+
+        if not packages:
+            print(f"No packages found")
+            return
+
+        # Group by category
+        by_category = {}
+        for pkg in packages:
+            if pkg.category not in by_category:
+                by_category[pkg.category] = []
+            by_category[pkg.category].append(pkg)
+
+        for cat, pkgs in sorted(by_category.items()):
+            print(f"\n{cat.replace('_', ' ').title()} ({len(pkgs)} packages)")
+            print("-" * 60)
+
+            for pkg in pkgs[:10]:  # Limit per category
+                platforms = ', '.join(pkg.platforms[:3])
+                print(f"  • {pkg.name:<25} ({platforms})")
+
+            if len(pkgs) > 10:
+                print(f"    ... and {len(pkgs) - 10} more")
+
+    async def cmd_categories(self):
+        """List all package categories"""
+        categories = self.installer.get_categories()
+
+        print(f"\n📂 Available Categories ({len(categories)}):\n")
+
+        for cat in categories:
+            packages = self.installer.list_packages(category=cat)
+            display_name = cat.replace('_', ' ').title()
+            print(f"  • {display_name:<30} ({len(packages)} packages)")
+
+        print(f"\nUse './koala list --category <name>' to see packages in a category")
 
     async def cmd_rollback_list(self):
         """List rollback snapshots"""
@@ -293,6 +446,29 @@ async def main():
     install_parser = subparsers.add_parser('install', help='Install applications')
     install_parser.add_argument('apps', nargs='+', help='Applications to install')
     install_parser.add_argument('-y', '--yes', action='store_true', help='Skip confirmations')
+    install_parser.add_argument('--dry-run', action='store_true', help='Simulate installation without making changes')
+
+    # Update command
+    update_parser = subparsers.add_parser('update', help='Update applications')
+    update_parser.add_argument('apps', nargs='*', help='Applications to update')
+    update_parser.add_argument('--all', action='store_true', help='Update all installed applications')
+
+    # Uninstall command
+    uninstall_parser = subparsers.add_parser('uninstall', help='Uninstall applications')
+    uninstall_parser.add_argument('apps', nargs='+', help='Applications to uninstall')
+    uninstall_parser.add_argument('-y', '--yes', action='store_true', help='Skip confirmations')
+
+    # Search command
+    search_parser = subparsers.add_parser('search', help='Search for applications')
+    search_parser.add_argument('query', help='Search query')
+
+    # List command
+    list_parser = subparsers.add_parser('list', help='List available applications')
+    list_parser.add_argument('--category', help='Filter by category')
+    list_parser.add_argument('--installed', action='store_true', help='List only installed applications')
+
+    # Categories command
+    subparsers.add_parser('categories', help='List all categories')
 
     # Rollback commands
     rollback_parser = subparsers.add_parser('rollback', help='Rollback operations')
@@ -344,7 +520,22 @@ async def main():
     # Route to appropriate command
     try:
         if args.command == 'install':
-            await cli.cmd_install(args.apps, args.yes)
+            await cli.cmd_install(args.apps, args.yes, dry_run=getattr(args, 'dry_run', False))
+
+        elif args.command == 'update':
+            await cli.cmd_update(args.apps if args.apps else None, all=args.all)
+
+        elif args.command == 'uninstall':
+            await cli.cmd_uninstall(args.apps, args.yes)
+
+        elif args.command == 'search':
+            await cli.cmd_search(args.query)
+
+        elif args.command == 'list':
+            await cli.cmd_list(category=args.category, installed=args.installed)
+
+        elif args.command == 'categories':
+            await cli.cmd_categories()
 
         elif args.command == 'rollback':
             if args.rollback_cmd == 'list':
