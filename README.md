@@ -4,7 +4,7 @@
 
 Choose your apps. Click install. Get on with your life.
 
-![Version](https://img.shields.io/badge/version-1.6.0-success)
+![Version](https://img.shields.io/badge/version-1.7.0-success)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -13,9 +13,9 @@ Choose your apps. Click install. Get on with your life.
 
 ---
 
-## ⚡ NEW: v1.6.0 - Power User Update (Latest)
+## ⚡ NEW: v1.7.0 - History & Verification Update (Latest)
 
-**🚀 Shell Completions! Import/Export Formats! List Installed!**
+**📜 Install History! 🔍 Package Verification! 🎯 Advanced Search!**
 
 Koala's Forge now includes a full-featured command-line interface!
 

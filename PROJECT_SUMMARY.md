@@ -1,6 +1,6 @@
 # 🐨 Koala's Forge - Project Summary
 
-**Version:** 1.6.0
+**Version:** 1.7.0
 **Status:** Production Ready
 **Repository:** https://github.com/mykolas-perevicius/koalas-forge
 
@@ -10,13 +10,16 @@
 
 Koala's Forge is a comprehensive, production-ready package management system featuring:
 - **Web GUI** - Modern, intuitive interface with smart recommendations
-- **CLI Tool** - 24 powerful commands for automation and scripting
+- **CLI Tool** - 26 powerful commands for automation and scripting
 - **Event System** - Reactive architecture for extensibility
 - **Plugin Ecosystem** - 4 working plugins with hot-reload support
 - **Safety Features** - Rollback system with lightweight snapshots
 - **Cloud Sync** - Cross-device configuration management
 - **Real Installation** - Actually installs via brew/apt/winget/choco
 - **⚡ Parallel-by-Default** - Install multiple packages concurrently with auto-fallback
+- **📜 Install History** - Track all package operations (v1.7.0)
+- **🔍 Verify Command** - Verify installed packages (v1.7.0)
+- **🎯 Advanced Search** - Search with --installed and --category filters (v1.7.0)
 - **🚀 Shell Completions** - Bash and zsh tab completion (v1.6.0)
 - **📥 Import Command** - Import packages from txt/json/yaml (v1.6.0)
 - **📤 Export Formats** - Export to txt/json/yaml formats (v1.6.0)
@@ -33,13 +36,13 @@ Koala's Forge is a comprehensive, production-ready package management system fea
 
 ## 🎯 Current Capabilities
 
-### CLI Commands (24 Total)
+### CLI Commands (26 Total)
 
 #### Package Management
 - `install <apps> [-f|--force]` - Install packages with auto-rollback (--force to reinstall)
 - `update <apps>` - Update specific packages
 - `uninstall <apps>` - Remove packages safely
-- `search <query>` - Search 100+ packages
+- `search <query> [--installed] [--category]` - **ENHANCED v1.7** Search with filters
 - `list [--category] [--installed]` - Browse available or installed packages
 - `categories` - List all 14 categories
 - `info <package>` - Detailed package information
@@ -61,8 +64,10 @@ Koala's Forge is a comprehensive, production-ready package management system fea
 - `version` - Version information
 - `events` - Recent event history
 - `health` - System health check & dependency verification
-- `doctor [--fix]` - **NEW v1.5** Diagnose and fix common issues
-- `cleanup [--keep N] [--dry-run]` - **NEW v1.5** Clean up old rollback snapshots
+- `doctor [--fix]` - Diagnose and fix common issues
+- `cleanup [--keep N] [--dry-run]` - Clean up old rollback snapshots
+- `history [--limit N] [--package] [--action]` - **NEW v1.7** View installation history
+- `verify [packages...]` - **NEW v1.7** Verify installed packages
 
 #### Configuration & Cloud
 - `config show/get/set/init` - **NEW** Configuration management
@@ -140,25 +145,28 @@ Koala's Forge is a comprehensive, production-ready package management system fea
 ## 📊 Statistics
 
 ### Code Metrics
-- **Total Lines Written:** ~5,600 production code
-- **Core Systems:** 8 modules, 2,700+ lines (config.py + updater.py)
-- **CLI Tool:** 1,400+ lines (v1.6: import, export formats, list installed, completions)
+- **Total Lines Written:** ~6,000 production code
+- **Core Systems:** 9 modules, 3,000+ lines (added history.py - 250 lines)
+- **CLI Tool:** 1,600+ lines (v1.7: history, verify, enhanced search)
 - **Plugins:** 4 plugins, 800+ lines
 - **Shell Completions:** bash + zsh support
 - **Documentation:** 4 comprehensive guides
 
 ### Features
-- **24** CLI commands (full-featured CLI suite)
+- **26** CLI commands (full-featured CLI suite)
 - **250+** packages in database (58 → 253: 4.4x expansion!)
 - **14** package categories
 - **5** built-in presets
 - **4** active plugins
 - **20+** event types
 - **3** example package lists
-- **🚀 Shell completions** - NEW in v1.6.0 (bash + zsh tab completion)
-- **📥 Import command** - NEW in v1.6.0 (txt/json/yaml support)
-- **📤 Export formats** - NEW in v1.6.0 (txt/json/yaml)
-- **📋 List installed** - NEW in v1.6.0 (--installed flag)
+- **📜 Install history** - NEW in v1.7.0 (track all operations with stats)
+- **🔍 Verify command** - NEW in v1.7.0 (check package integrity)
+- **🎯 Enhanced search** - NEW in v1.7.0 (--installed & --category filters)
+- **🚀 Shell completions** - v1.6.0 (bash + zsh tab completion)
+- **📥 Import command** - v1.6.0 (txt/json/yaml support)
+- **📤 Export formats** - v1.6.0 (txt/json/yaml)
+- **📋 List installed** - v1.6.0 (--installed flag)
 - **🩺 Auto-update check** - v1.5.0 (24-hour cache, non-intrusive)
 - **🩺 Doctor command** - v1.5.0 (diagnose + fix issues)
 - **🧹 Cleanup command** - v1.5.0 (manage snapshots)
@@ -296,6 +304,7 @@ koalas-forge/
 - **v1.4.0** - 🎉 THE MEGA RELEASE: Parallel-by-default, auto-fallback, 250+ apps (4.4x expansion!)
 - **v1.5.0** - 🩺 QUALITY OF LIFE UPDATE: Auto-update check, doctor command, cleanup tools, force reinstall
 - **v1.6.0** - 🚀 POWER USER UPDATE: Shell completions, import/export formats, list installed packages
+- **v1.7.0** - 📜 HISTORY & VERIFICATION UPDATE: Install history tracking, verify command, enhanced search
 
 ---
 
@@ -384,5 +393,5 @@ The project is structured for easy contribution:
 
 ---
 
-**Koala's Forge v1.6.0** - Production-ready package management with style! 🐨
+**Koala's Forge v1.7.0** - Production-ready package management with style! 🐨
 

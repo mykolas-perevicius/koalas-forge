@@ -51,6 +51,7 @@ from src.core.cloud_sync import CloudSyncManager
 from src.core.installer import PackageInstaller, get_installer
 from src.core.config import Config, get_config
 from src.core.updater import get_update_checker
+from src.core.history import get_history
 from datetime import datetime
 
 
@@ -64,7 +65,8 @@ class KoalasCLI:
         self.cloud_sync = CloudSyncManager()
         self.installer = get_installer()
         self.config = get_config()
-        self.version = "1.6.0"
+        self.history = get_history()
+        self.version = "1.7.0"
 
     async def cmd_install(self, apps: List[str], yes: bool = False, dry_run: bool = False, sequential: bool = False, force: bool = False):
         """Install applications with parallel-by-default and auto-fallback"""
@@ -168,6 +170,26 @@ class KoalasCLI:
             for app, error in failed:
                 print(f"     - {app}: {error}")
 
+        # Track installation in history (only if not dry run)
+        if not dry_run:
+            for app in installed:
+                self.history.add_entry(
+                    package=app,
+                    action='install',
+                    success=True,
+                    details={
+                        'parallel': not sequential and len(apps) > 1,
+                        'forced': force
+                    }
+                )
+            for app, error in failed:
+                self.history.add_entry(
+                    package=app,
+                    action='install',
+                    success=False,
+                    details={'error': error}
+                )
+
     async def cmd_update(self, apps: Optional[List[str]] = None, all: bool = False):
         """Update applications"""
         if all:
@@ -236,21 +258,49 @@ class KoalasCLI:
             for app, error in failed:
                 print(f"     - {app}: {error}")
 
-    async def cmd_search(self, query: str):
-        """Search for applications"""
+    async def cmd_search(self, query: str, installed: bool = False, category: str = None):
+        """Search for applications with optional filters"""
         results = self.installer.search_packages(query)
 
+        # Apply category filter
+        if category:
+            results = [pkg for pkg in results if pkg.category == category]
+
+        # Apply installed filter
+        if installed:
+            filtered_results = []
+            for pkg in results:
+                pkg_name = pkg.name.lower().replace(' ', '-')
+                if await self.installer.is_installed(pkg_name):
+                    filtered_results.append(pkg)
+            results = filtered_results
+
         if not results:
-            print(f"No packages found matching '{query}'")
+            filters_msg = ""
+            if installed:
+                filters_msg += " (installed only)"
+            if category:
+                filters_msg += f" (category: {category})"
+            print(f"No packages found matching '{query}'{filters_msg}")
             return
 
-        print(f"\n🔍 Found {len(results)} package(s) matching '{query}':\n")
-        print(f"{'Name':<30} {'Category':<20} {'Platforms'}")
-        print("=" * 80)
+        print(f"\n🔍 Found {len(results)} package(s) matching '{query}'")
+        if installed:
+            print(f"   (showing installed only)")
+        if category:
+            print(f"   (category: {category})")
+        print()
+
+        print(f"{'Status':<8} {'Name':<30} {'Category':<20} {'Platforms'}")
+        print("=" * 88)
 
         for pkg in results[:20]:  # Limit to 20 results
+            pkg_name = pkg.name.lower().replace(' ', '-')
+            is_installed = await self.installer.is_installed(pkg_name)
+            status = "✅" if is_installed else "⬜"
+
             platforms = ', '.join(pkg.platforms[:3])
-            print(f"{pkg.name:<30} {pkg.category:<20} {platforms}")
+            print(f"{status:<8} {pkg.name:<30} {pkg.category:<20} {platforms}")
 
             if pkg.notes:
                 print(f"    {pkg.notes[:60]}")
@@ -1223,6 +1273,88 @@ class KoalasCLI:
         else:
             print(f"\n💡 Run without --dry-run to actually delete")
 
+    async def cmd_history(self, limit: int = 20, package: str = None, action: str = None):
+        """View installation history"""
+        print(f"\n📜 Installation History\n")
+
+        if package:
+            entries = self.history.get_entries_for_package(package)
+            print(f"Showing history for: {package}\n")
+        elif action:
+            entries = self.history.get_entries_by_action(action)
+            print(f"Showing {action} actions\n")
+        else:
+            entries = self.history.get_all_entries(limit=limit)
+
+        if not entries:
+            print("No history entries found")
+            return
+
+        print(f"{'='*80}")
+        print(f"Showing {len(entries)} most recent entr{'ies' if len(entries) != 1 else 'y'}\n")
+
+        for entry in entries:
+            timestamp = datetime.fromisoformat(entry.timestamp)
+            status = "✅" if entry.success else "❌"
+            action_icon = {"install": "📦", "update": "🔄", "uninstall": "🗑️"}.get(entry.action, "•")
+
+            print(f"{timestamp.strftime('%Y-%m-%d %H:%M:%S')} | {status} | {action_icon} {entry.action.upper():<10} | {entry.package}")
+
+            if entry.details:
+                details_str = ", ".join(f"{k}: {v}" for k, v in entry.details.items())
+                print(f"  ↳ {details_str}")
+
+        # Show stats
+        stats = self.history.get_stats()
+        print(f"\n{'='*80}")
+        print(f"📊 Statistics:")
+        print(f"   Total operations: {stats['total']}")
+        print(f"   Installs: {stats['installs']} | Updates: {stats['updates']} | Uninstalls: {stats['uninstalls']}")
+        print(f"   Success rate: {stats['success_rate']:.1f}%")
+        print(f"   Unique packages: {stats['unique_packages']}")
+
+    async def cmd_verify(self, packages: List[str] = None):
+        """Verify installed packages"""
+        print(f"\n🔍 Verifying installed packages...\n")
+
+        if packages:
+            # Verify specific packages
+            to_verify = packages
+        else:
+            # Verify all packages in database
+            all_packages = self.installer.list_packages()
+            to_verify = [pkg.name.lower().replace(' ', '-') for pkg in all_packages]
+
+        verified_count = 0
+        installed_count = 0
+        missing_count = 0
+        missing_packages = []
+
+        for pkg_name in to_verify:
+            if await self.installer.is_installed(pkg_name):
+                verified_count += 1
+                installed_count += 1
+                print(f"  ✅ {pkg_name}")
+            else:
+                # Check if it was supposed to be installed
+                last_action = self.history.get_last_action(pkg_name)
+                if last_action and last_action.action == 'install' and last_action.success:
+                    missing_count += 1
+                    missing_packages.append(pkg_name)
+                    print(f"  ⚠️  {pkg_name} - Installed before but now missing!")
+
+        print(f"\n{'='*80}")
+        print(f"📊 Verification Results:")
+        print(f"   Checked: {verified_count} packages")
+        print(f"   Installed: {installed_count}")
+
+        if missing_packages:
+            print(f"   ⚠️  Missing: {missing_count}")
+            print(f"\n   Packages that were installed but are now missing:")
+            for pkg in missing_packages:
+                print(f"     - {pkg}")
+            print(f"\n   💡 Run './koala install {' '.join(missing_packages)}' to reinstall")
+
 
 async def main():
     """Main entry point"""
@@ -1255,6 +1387,8 @@ async def main():
     # Search command
     search_parser = subparsers.add_parser('search', aliases=['s', 'find'], help='Search for applications')
     search_parser.add_argument('query', help='Search query')
+    search_parser.add_argument('--installed', action='store_true', help='Show only installed packages')
+    search_parser.add_argument('--category', help='Filter by category')
 
     # List command
     list_parser = subparsers.add_parser('list', aliases=['ls'], help='List available applications')
@@ -1354,6 +1488,16 @@ async def main():
     cleanup_parser.add_argument('--keep', type=int, default=10, help='Number of snapshots to keep (default: 10)')
     cleanup_parser.add_argument('--dry-run', action='store_true', help='Show what would be deleted without deleting')
 
+    # History command
+    history_parser = subparsers.add_parser('history', help='View installation history')
+    history_parser.add_argument('--limit', type=int, default=20, help='Number of entries to show (default: 20)')
+    history_parser.add_argument('--package', help='Filter by package name')
+    history_parser.add_argument('--action', choices=['install', 'update', 'uninstall'], help='Filter by action type')
+
+    # Verify command
+    verify_parser = subparsers.add_parser('verify', help='Verify installed packages')
+    verify_parser.add_argument('packages', nargs='*', help='Specific packages to verify (default: all)')
+
     subparsers.add_parser('version', aliases=['v'], help='Show version info')
 
     args = parser.parse_args()
@@ -1386,7 +1530,11 @@ async def main():
             await cli.cmd_uninstall(args.apps, args.yes)
 
         elif args.command in ('search', 's', 'find'):
-            await cli.cmd_search(args.query)
+            await cli.cmd_search(
+                args.query,
+                installed=getattr(args, 'installed', False),
+                category=getattr(args, 'category', None)
+            )
 
         elif args.command in ('list', 'ls'):
             await cli.cmd_list(category=args.category, installed=args.installed)
@@ -1468,6 +1616,17 @@ async def main():
 
         elif args.command == 'cleanup':
             await cli.cmd_cleanup(keep=args.keep, dry_run=getattr(args, 'dry_run', False))
+
+        elif args.command == 'history':
+            await cli.cmd_history(
+                limit=getattr(args, 'limit', 20),
+                package=getattr(args, 'package', None),
+                action=getattr(args, 'action', None)
+            )
+
+        elif args.command == 'verify':
+            packages = getattr(args, 'packages', None)
+            await cli.cmd_verify(packages if packages else None)
 
         elif args.command in ('version', 'v'):
             cli.cmd_version()
