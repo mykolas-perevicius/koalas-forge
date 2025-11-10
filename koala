@@ -49,6 +49,7 @@ from src.core.plugin_system import PluginManager
 from src.core.rollback_system import RollbackManager
 from src.core.cloud_sync import CloudSyncManager
 from src.core.installer import PackageInstaller, get_installer
+from src.core.config import Config, get_config
 from datetime import datetime
 
 
@@ -61,11 +62,15 @@ class KoalasCLI:
         self.rollback_manager = RollbackManager()
         self.cloud_sync = CloudSyncManager()
         self.installer = get_installer()
-        self.version = "1.2.2"
+        self.config = get_config()
+        self.version = "1.3.0"
 
-    async def cmd_install(self, apps: List[str], yes: bool = False, dry_run: bool = False):
+    async def cmd_install(self, apps: List[str], yes: bool = False, dry_run: bool = False, parallel: bool = False):
         """Install applications"""
         print(f"🐨 Installing {len(apps)} application(s)...")
+
+        if parallel:
+            print(f"⚡ Parallel mode enabled - installing concurrently\n")
 
         if dry_run:
             print("🔍 DRY RUN MODE - No actual changes will be made\n")
@@ -79,17 +84,44 @@ class KoalasCLI:
         failed = []
         already_installed = []
 
-        for app in apps:
-            result = await self.installer.install(app, dry_run=dry_run)
+        if parallel and len(apps) > 1:
+            # Concurrent installation
+            import time
+            start_time = time.time()
 
-            if result.get('success'):
-                if result.get('already_installed'):
-                    already_installed.append(app)
+            # Install all apps concurrently
+            tasks = [self.installer.install(app, dry_run=dry_run) for app in apps]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+
+            # Process results
+            for app, result in zip(apps, results):
+                if isinstance(result, Exception):
+                    failed.append((app, str(result)))
+                    print(f"  ❌ Failed to install {app}: {result}")
+                elif result.get('success'):
+                    if result.get('already_installed'):
+                        already_installed.append(app)
+                    else:
+                        installed.append(app)
                 else:
-                    installed.append(app)
-            else:
-                failed.append((app, result.get('error', 'Unknown error')))
-                print(f"  ❌ Failed to install {app}: {result.get('error')}")
+                    failed.append((app, result.get('error', 'Unknown error')))
+                    print(f"  ❌ Failed to install {app}: {result.get('error')}")
+
+            elapsed = time.time() - start_time
+            print(f"\n⚡ Parallel installation completed in {elapsed:.1f}s")
+        else:
+            # Sequential installation
+            for app in apps:
+                result = await self.installer.install(app, dry_run=dry_run)
+
+                if result.get('success'):
+                    if result.get('already_installed'):
+                        already_installed.append(app)
+                    else:
+                        installed.append(app)
+                else:
+                    failed.append((app, result.get('error', 'Unknown error')))
+                    print(f"  ❌ Failed to install {app}: {result.get('error')}")
 
         # Summary
         print(f"\n✨ Installation complete!")
@@ -689,6 +721,153 @@ class KoalasCLI:
         print(f"  ✅ Parallel Downloads")
         print(f"  ✅ Cloud Sync")
 
+    async def cmd_health(self):
+        """Check system health and dependencies"""
+        import subprocess
+        import shutil
+
+        print(f"\n🏥 Koala's Forge Health Check\n")
+
+        # Check Python version
+        py_version = sys.version.split()[0]
+        print(f"Python: {py_version}", end="")
+        if sys.version_info >= (3, 8):
+            print(" ✅")
+        else:
+            print(" ⚠️  (3.8+ recommended)")
+
+        # Check OS
+        os_name = self.installer.platform_info['os']
+        print(f"Platform: {os_name} ✅")
+
+        # Check package managers
+        print(f"\nPackage Managers:")
+
+        if os_name == "Darwin":  # macOS
+            # Check Homebrew
+            brew_path = shutil.which('brew')
+            if brew_path:
+                try:
+                    result = subprocess.run(['brew', '--version'],
+                                          capture_output=True, text=True, timeout=5)
+                    version = result.stdout.split('\n')[0].replace('Homebrew ', '')
+                    print(f"  Homebrew: {version} ✅")
+                except:
+                    print(f"  Homebrew: Found but version check failed ⚠️")
+            else:
+                print(f"  Homebrew: Not found ❌")
+                print(f"    Install: /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"")
+
+        elif os_name == "Linux":
+            # Check apt
+            apt_path = shutil.which('apt')
+            if apt_path:
+                try:
+                    result = subprocess.run(['apt', '--version'],
+                                          capture_output=True, text=True, timeout=5)
+                    version = result.stdout.split('\n')[0]
+                    print(f"  apt: {version} ✅")
+                except:
+                    print(f"  apt: Found ✅")
+            else:
+                print(f"  apt: Not found")
+
+            # Check snap
+            snap_path = shutil.which('snap')
+            if snap_path:
+                print(f"  snap: Found ✅")
+            else:
+                print(f"  snap: Not found")
+
+        # Check dependencies
+        print(f"\nKoala's Forge Components:")
+
+        # Check apps.yaml
+        apps_file = Path(__file__).parent / "apps.yaml"
+        if apps_file.exists():
+            print(f"  Package Database: {len(self.installer.packages_db)} packages ✅")
+        else:
+            print(f"  Package Database: Missing ❌")
+
+        # Check plugin directory
+        plugin_dir = Path.home() / '.koalas-forge' / 'plugins'
+        if plugin_dir.exists():
+            plugin_count = len(list(plugin_dir.glob('*.py')))
+            print(f"  Plugin Directory: {plugin_count} plugins ✅")
+        else:
+            print(f"  Plugin Directory: Not found (will be created) ⚠️")
+
+        # Check snapshots
+        snapshot_count = len(self.rollback_manager.list_snapshots())
+        print(f"  Rollback Snapshots: {snapshot_count} ✅")
+
+        # Overall health
+        print(f"\n{'='*50}")
+        if os_name == "Darwin" and not shutil.which('brew'):
+            print("⚠️  Warning: Homebrew not found. Install it to use Koala's Forge.")
+        elif os_name == "Linux" and not shutil.which('apt'):
+            print("⚠️  Warning: No supported package manager found.")
+        else:
+            print("✅ System is healthy and ready to use!")
+
+    async def cmd_config_show(self):
+        """Show current configuration"""
+        config_values = self.config.get_all()
+
+        print(f"\n⚙️  Koala's Forge Configuration\n")
+        print(f"Config file: {self.config.config_file}")
+        print(f"{'='*50}\n")
+
+        for key, value in config_values.items():
+            print(f"  {key:<25} {value}")
+
+        print(f"\n💡 Use 'koala config set <key> <value>' to change settings")
+        print(f"💡 Use 'koala config init' to create default config file")
+
+    async def cmd_config_get(self, key: str):
+        """Get a configuration value"""
+        value = self.config.get(key)
+
+        if value is None:
+            print(f"❌ Configuration key '{key}' not found")
+            print(f"\n💡 Use 'koala config show' to see all available keys")
+        else:
+            print(f"{key} = {value}")
+
+    async def cmd_config_set(self, key: str, value: str):
+        """Set a configuration value"""
+        # Try to convert value to appropriate type
+        if value.lower() in ('true', 'yes', '1'):
+            typed_value = True
+        elif value.lower() in ('false', 'no', '0'):
+            typed_value = False
+        elif value.isdigit():
+            typed_value = int(value)
+        else:
+            typed_value = value
+
+        self.config.set(key, typed_value)
+
+        if self.config.save_config():
+            print(f"✅ Set {key} = {typed_value}")
+            print(f"💾 Configuration saved to {self.config.config_file}")
+        else:
+            print(f"❌ Failed to save configuration")
+
+    async def cmd_config_init(self):
+        """Initialize configuration file with defaults"""
+        if self.config.config_file.exists():
+            print(f"⚠️  Config file already exists: {self.config.config_file}")
+            print(f"💡 Use 'koala config show' to view current configuration")
+            return
+
+        if self.config.create_default_config_file():
+            print(f"✅ Created default configuration file")
+            print(f"📁 Location: {self.config.config_file}")
+            print(f"\n💡 Edit the file directly or use 'koala config set <key> <value>'")
+        else:
+            print(f"❌ Failed to create configuration file")
+
 
 async def main():
     """Main entry point"""
@@ -705,6 +884,7 @@ async def main():
     install_parser.add_argument('apps', nargs='+', help='Applications to install')
     install_parser.add_argument('-y', '--yes', action='store_true', help='Skip confirmations')
     install_parser.add_argument('--dry-run', action='store_true', help='Simulate installation without making changes')
+    install_parser.add_argument('-p', '--parallel', action='store_true', help='Install packages concurrently (faster)')
 
     # Update command
     update_parser = subparsers.add_parser('update', aliases=['u', 'upgrade'], help='Update applications')
@@ -782,11 +962,26 @@ async def main():
     sync_subparsers.add_parser('push', help='Push to cloud')
     sync_subparsers.add_parser('pull', help='Pull from cloud')
 
+    # Config commands
+    config_parser = subparsers.add_parser('config', help='Configuration management')
+    config_subparsers = config_parser.add_subparsers(dest='config_cmd')
+
+    config_subparsers.add_parser('show', help='Show all configuration')
+    config_subparsers.add_parser('init', help='Create default config file')
+
+    config_get = config_subparsers.add_parser('get', help='Get a config value')
+    config_get.add_argument('key', help='Configuration key')
+
+    config_set = config_subparsers.add_parser('set', help='Set a config value')
+    config_set.add_argument('key', help='Configuration key')
+    config_set.add_argument('value', help='Configuration value')
+
     # Other commands
     events_parser = subparsers.add_parser('events', aliases=['log'], help='Show recent events')
     events_parser.add_argument('-n', '--limit', type=int, default=20, help='Number of events')
 
     subparsers.add_parser('status', aliases=['st'], help='Show system status')
+    subparsers.add_parser('health', help='Check system health and dependencies')
     subparsers.add_parser('version', aliases=['v'], help='Show version info')
 
     args = parser.parse_args()
@@ -800,7 +995,9 @@ async def main():
     # Route to appropriate command
     try:
         if args.command in ('install', 'i'):
-            await cli.cmd_install(args.apps, args.yes, dry_run=getattr(args, 'dry_run', False))
+            await cli.cmd_install(args.apps, args.yes,
+                                dry_run=getattr(args, 'dry_run', False),
+                                parallel=getattr(args, 'parallel', False))
 
         elif args.command in ('update', 'u', 'upgrade'):
             await cli.cmd_update(args.apps if args.apps else None, all=args.all)
@@ -862,11 +1059,26 @@ async def main():
             else:
                 sync_parser.print_help()
 
+        elif args.command == 'config':
+            if args.config_cmd == 'show':
+                await cli.cmd_config_show()
+            elif args.config_cmd == 'get':
+                await cli.cmd_config_get(args.key)
+            elif args.config_cmd == 'set':
+                await cli.cmd_config_set(args.key, args.value)
+            elif args.config_cmd == 'init':
+                await cli.cmd_config_init()
+            else:
+                config_parser.print_help()
+
         elif args.command in ('events', 'log'):
             await cli.cmd_events(args.limit)
 
         elif args.command in ('status', 'st'):
             await cli.cmd_status()
+
+        elif args.command == 'health':
+            await cli.cmd_health()
 
         elif args.command in ('version', 'v'):
             cli.cmd_version()

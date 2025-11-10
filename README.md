@@ -4,7 +4,7 @@
 
 Choose your apps. Click install. Get on with your life.
 
-![Version](https://img.shields.io/badge/version-1.2.2-success)
+![Version](https://img.shields.io/badge/version-1.3.0-success)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -13,7 +13,7 @@ Choose your apps. Click install. Get on with your life.
 
 ---
 
-## ⚡ NEW: Powerful CLI Tool (v1.2.1)
+## ⚡ NEW: v1.3.0 - Performance & Configuration (Latest)
 
 Koala's Forge now includes a full-featured command-line interface!
 

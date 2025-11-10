@@ -1,6 +1,6 @@
 # 🐨 Koala's Forge - Project Summary
 
-**Version:** 1.2.2
+**Version:** 1.3.0
 **Status:** Production Ready
 **Repository:** https://github.com/mykolas-perevicius/koalas-forge
 
@@ -10,18 +10,21 @@
 
 Koala's Forge is a comprehensive, production-ready package management system featuring:
 - **Web GUI** - Modern, intuitive interface with smart recommendations
-- **CLI Tool** - 16 powerful commands for automation and scripting
+- **CLI Tool** - 20 powerful commands for automation and scripting
 - **Event System** - Reactive architecture for extensibility
 - **Plugin Ecosystem** - 4 working plugins with hot-reload support
 - **Safety Features** - Rollback system with lightweight snapshots
 - **Cloud Sync** - Cross-device configuration management
 - **Real Installation** - Actually installs via brew/apt/winget/choco
+- **⚡ NEW: Parallel Installs** - Install multiple packages concurrently
+- **⚡ NEW: Health Check** - Verify system dependencies
+- **⚡ NEW: Configuration** - User preferences via config file
 
 ---
 
 ## 🎯 Current Capabilities
 
-### CLI Commands (16 Total)
+### CLI Commands (20 Total)
 
 #### Package Management
 - `install <apps>` - Install packages with auto-rollback
@@ -47,8 +50,10 @@ Koala's Forge is a comprehensive, production-ready package management system fea
 - `status` - System overview
 - `version` - Version information
 - `events` - Recent event history
+- `health` - **NEW** System health check & dependency verification
 
-#### Cloud & Plugins
+#### Configuration & Cloud
+- `config show/get/set/init` - **NEW** Configuration management
 - `sync status/push/pull` - Cloud synchronization
 - `plugin list/load/reload` - Plugin management
 
@@ -123,20 +128,22 @@ Koala's Forge is a comprehensive, production-ready package management system fea
 ## 📊 Statistics
 
 ### Code Metrics
-- **Total Lines Written:** ~4,700 production code
-- **Core Systems:** 6 modules, 2,472 lines
-- **CLI Tool:** 890+ lines
+- **Total Lines Written:** ~5,100 production code
+- **Core Systems:** 7 modules, 2,600 lines (added config.py)
+- **CLI Tool:** 1,080+ lines (added health + config commands)
 - **Plugins:** 4 plugins, 800+ lines
 - **Documentation:** 3 comprehensive guides
 
 ### Features
-- **16** CLI commands
+- **20** CLI commands (16 → 20: +health, +config show/get/set/init)
 - **100+** packages in database
 - **14** package categories
 - **5** built-in presets
 - **4** active plugins
 - **20+** event types
 - **3** example package lists
+- **⚡ Parallel installations** - NEW in v1.3.0
+- **⚙️ Configuration system** - NEW in v1.3.0
 
 ### Git Activity
 - **13** total commits
@@ -263,6 +270,7 @@ koalas-forge/
 - **v1.2.0** - MVP: Events, plugins, rollback, cloud sync
 - **v1.2.1** - Real installation + full CLI commands
 - **v1.2.2** - 6 new commands + preset system + examples
+- **v1.3.0** - ⚡ Parallel installations, health check, configuration system, command aliases
 
 ---
 
