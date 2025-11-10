@@ -4,12 +4,35 @@
 
 Choose your apps. Click install. Get on with your life.
 
-![Version](https://img.shields.io/badge/version-1.2.0-success)
+![Version](https://img.shields.io/badge/version-1.2.1-success)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 <!-- Demo GIF will be added here -->
 <!-- ![Koala's Forge Demo](demo/koalas-forge-demo.gif) -->
+
+---
+
+## ⚡ NEW: Powerful CLI Tool (v1.2.1)
+
+Koala's Forge now includes a full-featured command-line interface!
+
+```bash
+# Install apps with one command
+./koala install git docker python
+
+# Search 100+ packages
+./koala search ai
+
+# Browse by category
+./koala categories
+./koala list --category development_core
+
+# Automatic rollback points
+./koala rollback list
+```
+
+**👉 [Quick Start Guide](QUICKSTART.md)** | **[Full CLI Reference](CLI_GUIDE.md)**
 
 ---
 
