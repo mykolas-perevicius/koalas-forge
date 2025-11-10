@@ -1,0 +1,20 @@
+# Full Stack Developer Setup
+# Complete development environment
+
+# Core tools
+git
+docker
+
+# Languages & runtimes
+python-3.11
+node.js
+go
+rust
+
+# Databases
+postgresql
+redis
+mongodb
+
+# Tools
+postman

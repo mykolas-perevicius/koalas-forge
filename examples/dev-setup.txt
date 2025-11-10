@@ -1,0 +1,11 @@
+# Development Setup - Essential Tools
+# One package per line, comments start with #
+
+git
+python-3.11
+node.js
+docker
+
+# Optional: Add more as needed
+# postgresql
+# redis

@@ -235,6 +235,257 @@ class KoalasCLI:
 
         print(f"\nUse './koala list --category <name>' to see packages in a category")
 
+    async def cmd_info(self, package_name: str):
+        """Show detailed information about a package"""
+        pkg = self.installer.get_package(package_name)
+
+        if not pkg:
+            print(f"❌ Package not found: {package_name}")
+            print(f"\nTry: ./koala search {package_name}")
+            return
+
+        # Check if installed
+        is_installed = await self.installer.is_installed(package_name)
+
+        print(f"\n{'='*70}")
+        print(f"📦 {pkg.name}")
+        print(f"{'='*70}\n")
+
+        print(f"Status:      {'✅ Installed' if is_installed else '⬜ Not installed'}")
+        print(f"Package:     {pkg.package}")
+        print(f"Category:    {pkg.category.replace('_', ' ').title()}")
+        print(f"Platforms:   {', '.join(pkg.platforms)}")
+        print(f"Install via: {pkg.install_type}")
+        print(f"Priority:    {pkg.priority}")
+
+        if pkg.size:
+            print(f"Size:        {pkg.size}")
+
+        if pkg.version:
+            print(f"Version:     {pkg.version}")
+
+        if pkg.notes:
+            print(f"\nDescription:")
+            print(f"  {pkg.notes}")
+
+        if pkg.pre_install:
+            print(f"\n⚙️  Has pre-install script")
+
+        if pkg.post_install:
+            print(f"⚙️  Has post-install script")
+
+        print(f"\n{'='*70}")
+
+        if not is_installed:
+            print(f"\nTo install: ./koala install {package_name}")
+        else:
+            print(f"\nTo update:    ./koala update {package_name}")
+            print(f"To uninstall: ./koala uninstall {package_name}")
+
+    async def cmd_preset(self, preset_name: str, dry_run: bool = False):
+        """Install a preset collection of packages"""
+        presets = {
+            'dev-essentials': {
+                'name': 'Development Essentials',
+                'packages': ['git', 'python-3.11', 'node.js', 'docker'],
+                'description': 'Core development tools for any developer'
+            },
+            'ai-developer': {
+                'name': 'AI Developer Pack',
+                'packages': ['python-3.11', 'ollama', 'jupyter', 'git'],
+                'description': 'Tools for AI and machine learning development'
+            },
+            'full-stack': {
+                'name': 'Full Stack Developer',
+                'packages': ['git', 'node.js', 'python-3.11', 'docker', 'postgresql', 'redis'],
+                'description': 'Complete full-stack development environment'
+            },
+            'creative': {
+                'name': 'Creative Suite',
+                'packages': ['gimp', 'inkscape', 'blender', 'audacity'],
+                'description': 'Tools for creative professionals'
+            },
+            'security': {
+                'name': 'Security Tools',
+                'packages': ['wireshark', 'nmap', 'burp-suite', '1password'],
+                'description': 'Security and privacy tools'
+            }
+        }
+
+        if preset_name == 'list':
+            print(f"\n📋 Available Presets:\n")
+            for key, preset in presets.items():
+                print(f"  • {key}")
+                print(f"    {preset['name']} - {preset['description']}")
+                print(f"    Packages: {', '.join(preset['packages'][:4])}")
+                if len(preset['packages']) > 4:
+                    print(f"              ... and {len(preset['packages']) - 4} more")
+                print()
+            print(f"Install a preset with: ./koala preset <name>")
+            return
+
+        if preset_name not in presets:
+            print(f"❌ Unknown preset: {preset_name}")
+            print(f"\nAvailable presets: {', '.join(presets.keys())}")
+            print(f"Or use: ./koala preset list")
+            return
+
+        preset = presets[preset_name]
+
+        print(f"\n🎯 Installing Preset: {preset['name']}")
+        print(f"   {preset['description']}")
+        print(f"   Packages: {len(preset['packages'])}\n")
+
+        if dry_run:
+            print("🔍 DRY RUN MODE - No actual changes will be made\n")
+            for pkg in preset['packages']:
+                print(f"  • {pkg}")
+            return
+
+        # Install all packages in the preset
+        await self.cmd_install(preset['packages'], yes=True, dry_run=False)
+
+    async def cmd_batch(self, file_path: str, dry_run: bool = False):
+        """Install packages from a file (one per line)"""
+        try:
+            with open(file_path, 'r') as f:
+                lines = f.readlines()
+
+            # Parse packages (skip comments and empty lines)
+            packages = []
+            for line in lines:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    packages.append(line)
+
+            if not packages:
+                print(f"❌ No packages found in {file_path}")
+                return
+
+            print(f"📄 Batch installation from: {file_path}")
+            print(f"   Found {len(packages)} package(s)\n")
+
+            if dry_run:
+                print("🔍 DRY RUN MODE - Would install:\n")
+                for pkg in packages:
+                    print(f"  • {pkg}")
+                return
+
+            # Install all packages
+            await self.cmd_install(packages, yes=True, dry_run=False)
+
+        except FileNotFoundError:
+            print(f"❌ File not found: {file_path}")
+        except Exception as e:
+            print(f"❌ Error reading file: {e}")
+
+    async def cmd_export(self, output_file: str = None):
+        """Export list of installed packages to a file"""
+        if not output_file:
+            output_file = f"koala-setup-{datetime.now().strftime('%Y%m%d')}.txt"
+
+        print(f"📤 Exporting installed packages...\n")
+
+        # Get all packages
+        all_packages = self.installer.list_packages()
+
+        # Check which ones are installed
+        installed_packages = []
+        for pkg in all_packages:
+            if await self.installer.is_installed(pkg.name.lower().replace(' ', '-')):
+                installed_packages.append(pkg)
+
+        if not installed_packages:
+            print("❌ No installed packages found")
+            return
+
+        # Write to file
+        try:
+            with open(output_file, 'w') as f:
+                f.write(f"# Koala's Forge Setup - {datetime.now().strftime('%Y-%m-%d %H:%M')}\n")
+                f.write(f"# Installed packages: {len(installed_packages)}\n")
+                f.write(f"# To restore: ./koala batch {output_file}\n\n")
+
+                # Group by category
+                by_category = {}
+                for pkg in installed_packages:
+                    if pkg.category not in by_category:
+                        by_category[pkg.category] = []
+                    by_category[pkg.category].append(pkg)
+
+                for category in sorted(by_category.keys()):
+                    f.write(f"\n# {category.replace('_', ' ').title()}\n")
+                    for pkg in by_category[category]:
+                        pkg_name = pkg.name.lower().replace(' ', '-')
+                        f.write(f"{pkg_name}\n")
+
+            print(f"✅ Exported {len(installed_packages)} package(s) to: {output_file}")
+            print(f"\nTo restore on another machine:")
+            print(f"  ./koala batch {output_file}")
+            print(f"\nTo sync via cloud:")
+            print(f"  ./koala sync push")
+
+        except Exception as e:
+            print(f"❌ Error writing file: {e}")
+
+    async def cmd_compare(self, file_path: str):
+        """Compare current setup with a package list file"""
+        try:
+            with open(file_path, 'r') as f:
+                lines = f.readlines()
+
+            # Parse packages from file
+            file_packages = set()
+            for line in lines:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    file_packages.add(line)
+
+            # Get installed packages
+            all_packages = self.installer.list_packages()
+            installed_packages = set()
+            for pkg in all_packages:
+                pkg_name = pkg.name.lower().replace(' ', '-')
+                if await self.installer.is_installed(pkg_name):
+                    installed_packages.add(pkg_name)
+
+            # Calculate differences
+            missing = file_packages - installed_packages
+            extra = installed_packages - file_packages
+            common = file_packages & installed_packages
+
+            print(f"\n📊 Comparing with: {file_path}\n")
+            print(f"{'='*70}")
+            print(f"In file:        {len(file_packages)} packages")
+            print(f"Installed:      {len(installed_packages)} packages")
+            print(f"Match:          {len(common)} packages")
+            print(f"{'='*70}\n")
+
+            if missing:
+                print(f"❌ Missing ({len(missing)}):")
+                for pkg in sorted(missing):
+                    print(f"   • {pkg}")
+                print()
+
+            if extra:
+                print(f"➕ Extra installed ({len(extra)}):")
+                for pkg in sorted(extra)[:10]:  # Limit to 10
+                    print(f"   • {pkg}")
+                if len(extra) > 10:
+                    print(f"   ... and {len(extra) - 10} more")
+                print()
+
+            if missing:
+                print(f"To install missing packages:")
+                print(f"  ./koala batch {file_path}")
+            else:
+                print(f"✅ All packages from file are installed!")
+
+        except FileNotFoundError:
+            print(f"❌ File not found: {file_path}")
+        except Exception as e:
+            print(f"❌ Error: {e}")
+
     async def cmd_rollback_list(self):
         """List rollback snapshots"""
         snapshots = self.rollback_manager.list_snapshots()
@@ -470,6 +721,28 @@ async def main():
     # Categories command
     subparsers.add_parser('categories', help='List all categories')
 
+    # Info command
+    info_parser = subparsers.add_parser('info', help='Show detailed package information')
+    info_parser.add_argument('package', help='Package name')
+
+    # Preset command
+    preset_parser = subparsers.add_parser('preset', help='Install preset collections')
+    preset_parser.add_argument('name', help='Preset name (use "list" to see available)')
+    preset_parser.add_argument('--dry-run', action='store_true', help='Show what would be installed')
+
+    # Batch command
+    batch_parser = subparsers.add_parser('batch', help='Install from file')
+    batch_parser.add_argument('file', help='File path with package names (one per line)')
+    batch_parser.add_argument('--dry-run', action='store_true', help='Show what would be installed')
+
+    # Export command
+    export_parser = subparsers.add_parser('export', help='Export installed packages to file')
+    export_parser.add_argument('output', nargs='?', help='Output file path (default: koala-setup-YYYYMMDD.txt)')
+
+    # Compare command
+    compare_parser = subparsers.add_parser('compare', help='Compare current setup with a file')
+    compare_parser.add_argument('file', help='File to compare against')
+
     # Rollback commands
     rollback_parser = subparsers.add_parser('rollback', help='Rollback operations')
     rollback_subparsers = rollback_parser.add_subparsers(dest='rollback_cmd')
@@ -536,6 +809,21 @@ async def main():
 
         elif args.command == 'categories':
             await cli.cmd_categories()
+
+        elif args.command == 'info':
+            await cli.cmd_info(args.package)
+
+        elif args.command == 'preset':
+            await cli.cmd_preset(args.name, dry_run=getattr(args, 'dry_run', False))
+
+        elif args.command == 'batch':
+            await cli.cmd_batch(args.file, dry_run=getattr(args, 'dry_run', False))
+
+        elif args.command == 'export':
+            await cli.cmd_export(args.output)
+
+        elif args.command == 'compare':
+            await cli.cmd_compare(args.file)
 
         elif args.command == 'rollback':
             if args.rollback_cmd == 'list':

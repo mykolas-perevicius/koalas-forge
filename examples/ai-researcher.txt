@@ -1,0 +1,8 @@
+# AI Researcher Setup
+# For machine learning and AI development
+
+python-3.11
+ollama
+jupyter
+git
+docker
