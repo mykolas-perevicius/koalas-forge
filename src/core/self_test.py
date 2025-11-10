@@ -126,8 +126,8 @@ class SelfTest:
                 nonlocal test_event_received
                 test_event_received = True
 
-            bus.register_handler(EventType.INSTALL_STARTED, test_handler)
-            bus.emit(Event(EventType.INSTALL_STARTED, {'test': True}))
+            bus.on(EventType.INSTALL_STARTED, test_handler)
+            await bus.emit(Event(EventType.INSTALL_STARTED, {'test': True}))
 
             duration = (time.perf_counter() - start) * 1000
             results.append(TestResult(
@@ -183,7 +183,7 @@ class SelfTest:
             (['./koala', 'status'], "Status command"),
             (['./koala', 'categories'], "Categories command"),
             (['./koala', 'list', '--category', 'development_core'], "List command"),
-            (['./koala', 'search', 'test', '--dry-run'], "Search command"),
+            (['./koala', 'search', 'test'], "Search command"),
         ]
 
         for cmd, name in commands:

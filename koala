@@ -54,6 +54,7 @@ from src.core.updater import get_update_checker
 from src.core.history import get_history
 from src.core.history_privacy import get_enhanced_history
 from src.core.self_test import get_self_test
+from src.core.dependency_resolver import get_dependency_resolver
 from datetime import datetime
 
 
@@ -70,7 +71,8 @@ class KoalasCLI:
         self.history = get_history()
         self.enhanced_history = get_enhanced_history()
         self.self_test = get_self_test()
-        self.version = "1.8.0"
+        self.dependency_resolver = get_dependency_resolver()
+        self.version = "1.9.0"
 
     async def cmd_install(self, apps: List[str], yes: bool = False, dry_run: bool = False, sequential: bool = False, force: bool = False):
         """Install applications with parallel-by-default and auto-fallback"""
@@ -88,6 +90,29 @@ class KoalasCLI:
         if not dry_run:
             snapshot_id = await self.rollback_manager.create_snapshot(f"Before installing {', '.join(apps)}")
             print(f"📸 Created snapshot: {snapshot_id}\n")
+
+        # Check dependencies (optional, can be disabled in config)
+        if self.config.get('check_dependencies', True) and not dry_run:
+            print(f"🔍 Checking dependencies...")
+            resolution = await self.dependency_resolver.resolve_dependencies(apps)
+
+            if resolution.conflicts:
+                print(f"\n⚠️  Conflicts detected:")
+                for pkg1, pkg2 in resolution.conflicts:
+                    print(f"   • {pkg1} conflicts with {pkg2}")
+                if not yes:
+                    confirm = input("\nContinue anyway? (y/N): ")
+                    if confirm.lower() != 'y':
+                        print("❌ Installation cancelled")
+                        return
+
+            if resolution.missing:
+                print(f"\n📦 Missing dependencies: {', '.join(resolution.missing)}")
+                if not yes:
+                    confirm = input("Install missing dependencies? (Y/n): ")
+                    if confirm.lower() != 'n':
+                        apps = resolution.install_order  # Use resolved order
+                        print(f"Updated install order: {' → '.join(apps)}\n")
 
         installed = []
         failed = []
@@ -1511,6 +1536,105 @@ class KoalasCLI:
         print(f"\n{'='*80}")
         print(f"Total breakages: {len(breakages)}")
 
+    async def cmd_deps(self, packages: List[str]):
+        """Show dependencies for packages"""
+        print(f"\n🔗 Analyzing Dependencies\n")
+
+        resolution = await self.dependency_resolver.resolve_dependencies(packages)
+
+        # Show dependency graph
+        viz = self.dependency_resolver.visualize_dependencies(packages)
+        print(viz)
+        print()
+
+        # Show install order
+        if resolution.install_order:
+            print("📦 Install Order:")
+            for i, pkg in enumerate(resolution.install_order, 1):
+                print(f"   {i}. {pkg}")
+            print()
+
+        # Show conflicts
+        if resolution.conflicts:
+            print("⚠️  Conflicts:")
+            for pkg1, pkg2 in resolution.conflicts:
+                print(f"   • {pkg1} ⚔️  {pkg2}")
+            print()
+
+        # Show optional dependencies
+        if resolution.optional:
+            print("💡 Optional Dependencies:")
+            for opt in resolution.optional:
+                print(f"   • {opt} (optional)")
+            print()
+
+        # Show replacements
+        if resolution.replacements:
+            print("🔄 Replacements:")
+            for old, new in resolution.replacements.items():
+                print(f"   • {new} can replace {old}")
+
+    async def cmd_recover(self, package: str):
+        """Create recovery plan for broken package"""
+        print(f"\n🚑 Creating Recovery Plan for {package}\n")
+
+        # Get recent error logs if available
+        error_log = None
+        recent_history = self.history.get_entries_for_package(package)
+        for entry in recent_history[:10]:  # Get last 10 entries
+            if not entry.success:
+                error_log = entry.details.get('error') if entry.details else None
+                break
+
+        # Create recovery plan
+        plan = await self.dependency_resolver.create_recovery_plan(package, error_log)
+
+        print(f"Package: {plan.broken_package}")
+        print(f"Root Cause: {plan.root_cause}")
+        print(f"Confidence: {plan.confidence*100:.0f}%")
+        print(f"Estimated Time: {plan.estimated_time}s\n")
+
+        if plan.steps:
+            print("📋 Recovery Steps:")
+            for i, step in enumerate(plan.steps, 1):
+                print(f"   {i}. {step}")
+            print()
+
+            print("💻 Commands to Execute:")
+            for cmd in plan.commands:
+                print(f"   $ {cmd}")
+        else:
+            print("❌ No recovery plan available")
+
+    async def cmd_recommend(self):
+        """Get smart package recommendations"""
+        print(f"\n✨ Smart Package Recommendations\n")
+
+        # Get installed packages
+        installed = []
+        for pkg_name in self.dependency_resolver.packages:
+            if self.dependency_resolver.check_if_installed(pkg_name):
+                installed.append(pkg_name)
+
+        if not installed:
+            print("No packages installed yet. Install some packages first!")
+            return
+
+        print(f"Based on your {len(installed)} installed packages:\n")
+
+        # Get recommendations
+        recommendations = await self.dependency_resolver.get_smart_recommendations(installed)
+
+        if not recommendations:
+            print("No recommendations at this time.")
+            return
+
+        print("🎯 Recommended Packages:")
+        for i, (pkg, reason, score) in enumerate(recommendations[:10], 1):
+            confidence = "⭐" * int(score * 5)
+            print(f"   {i:2}. {pkg:<20} {confidence}")
+            print(f"       → {reason}\n")
+
 
 async def main():
     """Main entry point"""
@@ -1669,6 +1793,15 @@ async def main():
     breakages_parser.add_argument('--package', help='Filter by package')
     breakages_parser.add_argument('--days', type=int, default=7, help='Number of days to look back (default: 7)')
 
+    # Dependency commands
+    deps_parser = subparsers.add_parser('deps', help='Show dependencies for packages')
+    deps_parser.add_argument('packages', nargs='+', help='Packages to analyze')
+
+    recover_parser = subparsers.add_parser('recover', help='Create recovery plan for broken package')
+    recover_parser.add_argument('package', help='Package to recover')
+
+    subparsers.add_parser('recommend', help='Get smart package recommendations')
+
     subparsers.add_parser('version', aliases=['v'], help='Show version info')
 
     args = parser.parse_args()
@@ -1818,6 +1951,15 @@ async def main():
                 package=getattr(args, 'package', None),
                 days=getattr(args, 'days', 7)
             )
+
+        elif args.command == 'deps':
+            await cli.cmd_deps(args.packages)
+
+        elif args.command == 'recover':
+            await cli.cmd_recover(args.package)
+
+        elif args.command == 'recommend':
+            await cli.cmd_recommend()
 
         elif args.command in ('version', 'v'):
             cli.cmd_version()

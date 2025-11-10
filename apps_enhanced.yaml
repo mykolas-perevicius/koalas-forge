@@ -1,0 +1,240 @@
+# Enhanced App Configuration with Dependencies
+# For Koala's Forge v1.9.0
+
+ai_local:
+  ollama:
+    name: "Ollama"
+    platforms: [mac, linux, windows]
+    install_type: "brew"
+    version: "latest"
+    dependencies:
+      - name: "curl"
+        type: "required"
+      - name: "nvidia-cuda-toolkit"
+        type: "optional"
+        reason: "GPU acceleration support"
+    post_install: |
+      ollama serve &
+      sleep 5
+      ollama pull llama3.2:latest
+    notes: "Local LLM runner with GPU acceleration"
+
+  lm-studio:
+    name: "LM Studio"
+    platforms: [mac, windows]
+    install_type: "cask"
+    dependencies:
+      - name: "git-lfs"
+        type: "recommended"
+        reason: "For downloading large models"
+
+development_core:
+  git:
+    name: "Git"
+    platforms: [mac, linux, windows]
+    install_type: "brew"
+    dependencies:
+      - name: "curl"
+        type: "required"
+      - name: "openssh"
+        type: "recommended"
+
+  docker:
+    name: "Docker"
+    platforms: [mac, linux, windows]
+    install_type: "cask"
+    dependencies:
+      - name: "virtualbox"
+        type: "conflicts"
+        reason: "Hypervisor conflicts"
+      - name: "docker-compose"
+        type: "recommended"
+      - name: "kubernetes-cli"
+        type: "optional"
+        reason: "For Kubernetes integration"
+
+  nodejs:
+    name: "Node.js"
+    platforms: [mac, linux, windows]
+    install_type: "brew"
+    dependencies:
+      - name: "npm"
+        type: "required"
+      - name: "yarn"
+        type: "recommended"
+      - name: "python@3.11"
+        type: "recommended"
+        reason: "For native module compilation"
+
+  python@3.11:
+    name: "Python 3.11"
+    platforms: [mac, linux, windows]
+    install_type: "brew"
+    dependencies:
+      - name: "python@3.12"
+        type: "conflicts"
+        reason: "Multiple Python versions can conflict"
+      - name: "pip"
+        type: "required"
+      - name: "pipx"
+        type: "recommended"
+      - name: "virtualenv"
+        type: "recommended"
+
+  python@3.12:
+    name: "Python 3.12"
+    platforms: [mac, linux, windows]
+    install_type: "brew"
+    dependencies:
+      - name: "python@3.11"
+        type: "conflicts"
+        reason: "Multiple Python versions can conflict"
+      - name: "pip"
+        type: "required"
+
+  rust:
+    name: "Rust"
+    platforms: [mac, linux, windows]
+    install_type: "brew"
+    dependencies:
+      - name: "llvm"
+        type: "recommended"
+        reason: "For better optimization"
+      - name: "cmake"
+        type: "optional"
+
+  go:
+    name: "Go"
+    platforms: [mac, linux, windows]
+    install_type: "brew"
+    dependencies:
+      - name: "git"
+        type: "required"
+        reason: "Go modules need git"
+
+development_tools:
+  visual-studio-code:
+    name: "Visual Studio Code"
+    platforms: [mac, linux, windows]
+    install_type: "cask"
+    dependencies:
+      - name: "git"
+        type: "required"
+      - name: "nodejs"
+        type: "recommended"
+        reason: "For extensions"
+
+  cursor:
+    name: "Cursor"
+    platforms: [mac, linux, windows]
+    install_type: "cask"
+    dependencies:
+      - name: "visual-studio-code"
+        type: "replaces"
+        reason: "AI-powered VS Code fork"
+
+  neovim:
+    name: "Neovim"
+    platforms: [mac, linux, windows]
+    install_type: "brew"
+    dependencies:
+      - name: "vim"
+        type: "replaces"
+      - name: "nodejs"
+        type: "recommended"
+        reason: "For LSP support"
+      - name: "ripgrep"
+        type: "recommended"
+      - name: "fd"
+        type: "recommended"
+
+databases:
+  postgresql:
+    name: "PostgreSQL"
+    platforms: [mac, linux, windows]
+    install_type: "brew"
+    dependencies:
+      - name: "mysql"
+        type: "conflicts"
+        reason: "Port conflicts on 3306"
+      - name: "redis"
+        type: "recommended"
+
+  mysql:
+    name: "MySQL"
+    platforms: [mac, linux, windows]
+    install_type: "brew"
+    dependencies:
+      - name: "mariadb"
+        type: "conflicts"
+        reason: "Both are MySQL forks"
+
+  redis:
+    name: "Redis"
+    platforms: [mac, linux, windows]
+    install_type: "brew"
+    dependencies:
+      - name: "memcached"
+        type: "optional"
+
+containers:
+  kubernetes-cli:
+    name: "Kubernetes CLI"
+    platforms: [mac, linux, windows]
+    install_type: "brew"
+    dependencies:
+      - name: "docker"
+        type: "required"
+      - name: "helm"
+        type: "recommended"
+      - name: "minikube"
+        type: "optional"
+        reason: "For local development"
+
+  docker-compose:
+    name: "Docker Compose"
+    platforms: [mac, linux, windows]
+    install_type: "brew"
+    dependencies:
+      - name: "docker"
+        type: "required"
+
+  podman:
+    name: "Podman"
+    platforms: [mac, linux]
+    install_type: "brew"
+    dependencies:
+      - name: "docker"
+        type: "replaces"
+        reason: "Daemonless container engine"
+
+terminal_tools:
+  iterm2:
+    name: "iTerm2"
+    platforms: [mac]
+    install_type: "cask"
+    dependencies:
+      - name: "zsh"
+        type: "recommended"
+      - name: "oh-my-zsh"
+        type: "optional"
+
+  alacritty:
+    name: "Alacritty"
+    platforms: [mac, linux, windows]
+    install_type: "cask"
+    dependencies:
+      - name: "tmux"
+        type: "recommended"
+
+  zsh:
+    name: "Zsh"
+    platforms: [mac, linux]
+    install_type: "brew"
+    dependencies:
+      - name: "oh-my-zsh"
+        type: "optional"
+      - name: "zsh-autosuggestions"
+        type: "recommended"
+      - name: "zsh-syntax-highlighting"
+        type: "recommended"
