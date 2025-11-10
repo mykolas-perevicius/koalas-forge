@@ -4,11 +4,18 @@
 A powerful command-line interface for managing your app installations.
 
 Usage:
-  koala install <app1> <app2> ...     Install applications
-  koala update [app1] [app2] | --all  Update applications
-  koala uninstall <app1> <app2>       Uninstall applications
-  koala list [--installed]            List available or installed apps
-  koala search <term>                 Search for applications
+  koala install <app1> <app2> ...     Install applications (alias: i)
+  koala update [app1] [app2] | --all  Update applications (aliases: u, upgrade)
+  koala uninstall <app1> <app2>       Uninstall applications (aliases: remove, rm, r)
+  koala list [--installed]            List available or installed apps (alias: ls)
+  koala search <term>                 Search for applications (aliases: s, find)
+  koala categories                    List all categories (alias: cat)
+  koala info <package>                Show detailed package info (alias: show)
+
+  koala preset <name>                 Install preset collections
+  koala batch <file>                  Install from package list file
+  koala export [output]               Export installed packages
+  koala compare <file>                Compare current setup with file
 
   koala rollback list                 List rollback snapshots
   koala rollback create <name>        Create a new snapshot
@@ -22,9 +29,9 @@ Usage:
   koala sync pull                     Pull profile from cloud
   koala sync status                   Check sync status
 
-  koala events                        Show recent events
-  koala status                        Show system status
-  koala version                       Show version info
+  koala events                        Show recent events (alias: log)
+  koala status                        Show system status (alias: st)
+  koala version                       Show version info (alias: v)
 """
 
 import sys
@@ -694,35 +701,35 @@ async def main():
     subparsers = parser.add_subparsers(dest='command', help='Command to run')
 
     # Install command
-    install_parser = subparsers.add_parser('install', help='Install applications')
+    install_parser = subparsers.add_parser('install', aliases=['i'], help='Install applications')
     install_parser.add_argument('apps', nargs='+', help='Applications to install')
     install_parser.add_argument('-y', '--yes', action='store_true', help='Skip confirmations')
     install_parser.add_argument('--dry-run', action='store_true', help='Simulate installation without making changes')
 
     # Update command
-    update_parser = subparsers.add_parser('update', help='Update applications')
+    update_parser = subparsers.add_parser('update', aliases=['u', 'upgrade'], help='Update applications')
     update_parser.add_argument('apps', nargs='*', help='Applications to update')
     update_parser.add_argument('--all', action='store_true', help='Update all installed applications')
 
     # Uninstall command
-    uninstall_parser = subparsers.add_parser('uninstall', help='Uninstall applications')
+    uninstall_parser = subparsers.add_parser('uninstall', aliases=['remove', 'rm', 'r'], help='Uninstall applications')
     uninstall_parser.add_argument('apps', nargs='+', help='Applications to uninstall')
     uninstall_parser.add_argument('-y', '--yes', action='store_true', help='Skip confirmations')
 
     # Search command
-    search_parser = subparsers.add_parser('search', help='Search for applications')
+    search_parser = subparsers.add_parser('search', aliases=['s', 'find'], help='Search for applications')
     search_parser.add_argument('query', help='Search query')
 
     # List command
-    list_parser = subparsers.add_parser('list', help='List available applications')
+    list_parser = subparsers.add_parser('list', aliases=['ls'], help='List available applications')
     list_parser.add_argument('--category', help='Filter by category')
     list_parser.add_argument('--installed', action='store_true', help='List only installed applications')
 
     # Categories command
-    subparsers.add_parser('categories', help='List all categories')
+    subparsers.add_parser('categories', aliases=['cat'], help='List all categories')
 
     # Info command
-    info_parser = subparsers.add_parser('info', help='Show detailed package information')
+    info_parser = subparsers.add_parser('info', aliases=['show'], help='Show detailed package information')
     info_parser.add_argument('package', help='Package name')
 
     # Preset command
@@ -776,11 +783,11 @@ async def main():
     sync_subparsers.add_parser('pull', help='Pull from cloud')
 
     # Other commands
-    events_parser = subparsers.add_parser('events', help='Show recent events')
+    events_parser = subparsers.add_parser('events', aliases=['log'], help='Show recent events')
     events_parser.add_argument('-n', '--limit', type=int, default=20, help='Number of events')
 
-    subparsers.add_parser('status', help='Show system status')
-    subparsers.add_parser('version', help='Show version info')
+    subparsers.add_parser('status', aliases=['st'], help='Show system status')
+    subparsers.add_parser('version', aliases=['v'], help='Show version info')
 
     args = parser.parse_args()
 
@@ -792,25 +799,25 @@ async def main():
 
     # Route to appropriate command
     try:
-        if args.command == 'install':
+        if args.command in ('install', 'i'):
             await cli.cmd_install(args.apps, args.yes, dry_run=getattr(args, 'dry_run', False))
 
-        elif args.command == 'update':
+        elif args.command in ('update', 'u', 'upgrade'):
             await cli.cmd_update(args.apps if args.apps else None, all=args.all)
 
-        elif args.command == 'uninstall':
+        elif args.command in ('uninstall', 'remove', 'rm', 'r'):
             await cli.cmd_uninstall(args.apps, args.yes)
 
-        elif args.command == 'search':
+        elif args.command in ('search', 's', 'find'):
             await cli.cmd_search(args.query)
 
-        elif args.command == 'list':
+        elif args.command in ('list', 'ls'):
             await cli.cmd_list(category=args.category, installed=args.installed)
 
-        elif args.command == 'categories':
+        elif args.command in ('categories', 'cat'):
             await cli.cmd_categories()
 
-        elif args.command == 'info':
+        elif args.command in ('info', 'show'):
             await cli.cmd_info(args.package)
 
         elif args.command == 'preset':
@@ -855,13 +862,13 @@ async def main():
             else:
                 sync_parser.print_help()
 
-        elif args.command == 'events':
+        elif args.command in ('events', 'log'):
             await cli.cmd_events(args.limit)
 
-        elif args.command == 'status':
+        elif args.command in ('status', 'st'):
             await cli.cmd_status()
 
-        elif args.command == 'version':
+        elif args.command in ('version', 'v'):
             cli.cmd_version()
 
     except KeyboardInterrupt:
