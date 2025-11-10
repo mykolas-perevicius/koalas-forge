@@ -50,6 +50,7 @@ from src.core.rollback_system import RollbackManager
 from src.core.cloud_sync import CloudSyncManager
 from src.core.installer import PackageInstaller, get_installer
 from src.core.config import Config, get_config
+from src.core.updater import get_update_checker
 from datetime import datetime
 
 
@@ -63,13 +64,16 @@ class KoalasCLI:
         self.cloud_sync = CloudSyncManager()
         self.installer = get_installer()
         self.config = get_config()
-        self.version = "1.4.0"
+        self.version = "1.5.0"
 
-    async def cmd_install(self, apps: List[str], yes: bool = False, dry_run: bool = False, sequential: bool = False):
+    async def cmd_install(self, apps: List[str], yes: bool = False, dry_run: bool = False, sequential: bool = False, force: bool = False):
         """Install applications with parallel-by-default and auto-fallback"""
         import time
 
         print(f"🐨 Installing {len(apps)} application(s)...")
+
+        if force:
+            print(f"💪 Force mode enabled - will reinstall even if already installed\n")
 
         if dry_run:
             print("🔍 DRY RUN MODE - No actual changes will be made\n")
@@ -898,6 +902,137 @@ class KoalasCLI:
         else:
             print(f"❌ Failed to create configuration file")
 
+    async def cmd_doctor(self, fix: bool = False):
+        """Diagnose and optionally fix common issues"""
+        import os
+        import subprocess
+        import shutil
+
+        print(f"\n🩺 Koala's Forge Doctor - Diagnosing issues...\n")
+
+        issues_found = []
+        fixes_applied = []
+
+        # Check 1: Homebrew installation (macOS)
+        os_name = self.installer.platform_info['os']
+        if os_name == "Darwin":
+            if not shutil.which('brew'):
+                issues_found.append("Homebrew is not installed")
+                if fix:
+                    print("🔧 Installing Homebrew...")
+                    try:
+                        subprocess.run(['/bin/bash', '-c',
+                                      '$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)'],
+                                     check=True)
+                        fixes_applied.append("Installed Homebrew")
+                    except:
+                        print("  ❌ Failed to install Homebrew automatically")
+
+        # Check 2: Plugin directory
+        plugin_dir = Path.home() / '.koalas-forge' / 'plugins'
+        if not plugin_dir.exists():
+            issues_found.append("Plugin directory doesn't exist")
+            if fix:
+                plugin_dir.mkdir(parents=True, exist_ok=True)
+                fixes_applied.append("Created plugin directory")
+
+        # Check 3: Cache directory
+        cache_dir = Path.home() / '.koalas-forge' / 'cache'
+        if not cache_dir.exists():
+            issues_found.append("Cache directory doesn't exist")
+            if fix:
+                cache_dir.mkdir(parents=True, exist_ok=True)
+                fixes_applied.append("Created cache directory")
+
+        # Check 4: Config file
+        if not self.config.config_file.exists():
+            issues_found.append("Configuration file doesn't exist")
+            if fix:
+                if self.config.create_default_config_file():
+                    fixes_applied.append("Created default configuration file")
+
+        # Check 5: Old/stale snapshots
+        snapshots = self.rollback_manager.list_snapshots()
+        if len(snapshots) > 50:
+            issues_found.append(f"Too many snapshots ({len(snapshots)}), consider cleanup")
+
+        # Check 6: Package database
+        if len(self.installer.packages_db) == 0:
+            issues_found.append("Package database is empty or failed to load")
+
+        # Check 7: Permissions on koala script
+        koala_script = Path(__file__)
+        if not os.access(koala_script, os.X_OK):
+            issues_found.append("Koala script is not executable")
+            if fix:
+                try:
+                    koala_script.chmod(0o755)
+                    fixes_applied.append("Made koala script executable")
+                except:
+                    print("  ❌ Failed to make koala executable")
+
+        # Report findings
+        print(f"{'='*60}")
+
+        if not issues_found:
+            print("✅ No issues found! System is healthy.")
+        else:
+            print(f"Found {len(issues_found)} issue(s):\n")
+            for i, issue in enumerate(issues_found, 1):
+                print(f"  {i}. {issue}")
+
+        if fix and fixes_applied:
+            print(f"\n🔧 Applied {len(fixes_applied)} fix(es):\n")
+            for fix_msg in fixes_applied:
+                print(f"  ✅ {fix_msg}")
+
+        if issues_found and not fix:
+            print(f"\n💡 Run './koala doctor --fix' to automatically fix issues")
+
+        print(f"{'='*60}")
+
+    async def cmd_cleanup(self, keep: int = 10, dry_run: bool = False):
+        """Clean up old rollback snapshots"""
+        snapshots = self.rollback_manager.list_snapshots()
+
+        if len(snapshots) <= keep:
+            print(f"✅ Only {len(snapshots)} snapshot(s) exist. Nothing to clean up.")
+            print(f"   (Keeping the most recent {keep} snapshots)")
+            return
+
+        # Sort by timestamp (newest first)
+        sorted_snapshots = sorted(snapshots, key=lambda x: x.get('timestamp', 0), reverse=True)
+
+        # Keep the newest 'keep' snapshots
+        to_keep = sorted_snapshots[:keep]
+        to_delete = sorted_snapshots[keep:]
+
+        print(f"\n🧹 Cleanup Report:")
+        print(f"   Total snapshots: {len(snapshots)}")
+        print(f"   Keeping: {len(to_keep)}")
+        print(f"   Deleting: {len(to_delete)}")
+
+        if dry_run:
+            print(f"\n🔍 DRY RUN - Would delete:")
+        else:
+            print(f"\n🗑️  Deleting old snapshots:")
+
+        for snapshot in to_delete:
+            snapshot_id = snapshot.get('id', 'unknown')
+            snapshot_name = snapshot.get('name', 'Unnamed')
+            print(f"   • {snapshot_id}: {snapshot_name}")
+
+            if not dry_run:
+                try:
+                    self.rollback_manager.delete_snapshot(snapshot_id)
+                except:
+                    print(f"     ❌ Failed to delete {snapshot_id}")
+
+        if not dry_run:
+            print(f"\n✅ Cleanup complete!")
+        else:
+            print(f"\n💡 Run without --dry-run to actually delete")
+
 
 async def main():
     """Main entry point"""
@@ -915,6 +1050,7 @@ async def main():
     install_parser.add_argument('-y', '--yes', action='store_true', help='Skip confirmations')
     install_parser.add_argument('--dry-run', action='store_true', help='Simulate installation without making changes')
     install_parser.add_argument('-s', '--sequential', action='store_true', help='Force sequential installation (parallel is default)')
+    install_parser.add_argument('-f', '--force', action='store_true', help='Force reinstall even if already installed')
 
     # Update command
     update_parser = subparsers.add_parser('update', aliases=['u', 'upgrade'], help='Update applications')
@@ -1012,6 +1148,16 @@ async def main():
 
     subparsers.add_parser('status', aliases=['st'], help='Show system status')
     subparsers.add_parser('health', help='Check system health and dependencies')
+
+    # Doctor command
+    doctor_parser = subparsers.add_parser('doctor', help='Diagnose and fix common issues')
+    doctor_parser.add_argument('--fix', action='store_true', help='Automatically fix found issues')
+
+    # Cleanup command
+    cleanup_parser = subparsers.add_parser('cleanup', help='Clean up old rollback snapshots')
+    cleanup_parser.add_argument('--keep', type=int, default=10, help='Number of snapshots to keep (default: 10)')
+    cleanup_parser.add_argument('--dry-run', action='store_true', help='Show what would be deleted without deleting')
+
     subparsers.add_parser('version', aliases=['v'], help='Show version info')
 
     args = parser.parse_args()
@@ -1022,12 +1168,20 @@ async def main():
 
     cli = KoalasCLI()
 
+    # Check for updates (once per day, cached)
+    try:
+        updater = get_update_checker(cli.version)
+        updater.notify_if_update_available()
+    except:
+        pass  # Don't let update check break the CLI
+
     # Route to appropriate command
     try:
         if args.command in ('install', 'i'):
             await cli.cmd_install(args.apps, args.yes,
                                 dry_run=getattr(args, 'dry_run', False),
-                                sequential=getattr(args, 'sequential', False))
+                                sequential=getattr(args, 'sequential', False),
+                                force=getattr(args, 'force', False))
 
         elif args.command in ('update', 'u', 'upgrade'):
             await cli.cmd_update(args.apps if args.apps else None, all=args.all)
@@ -1109,6 +1263,12 @@ async def main():
 
         elif args.command == 'health':
             await cli.cmd_health()
+
+        elif args.command == 'doctor':
+            await cli.cmd_doctor(fix=args.fix)
+
+        elif args.command == 'cleanup':
+            await cli.cmd_cleanup(keep=args.keep, dry_run=getattr(args, 'dry_run', False))
 
         elif args.command in ('version', 'v'):
             cli.cmd_version()

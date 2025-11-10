@@ -213,6 +213,69 @@ Cloud Sync:
   Enabled: True
 ```
 
+### Diagnose and Fix Issues
+
+```bash
+# Check for common issues
+./koala doctor
+
+# Automatically fix detected issues
+./koala doctor --fix
+```
+
+**What it checks:**
+- Homebrew installation (macOS)
+- Plugin directory exists
+- Cache directory exists
+- Configuration file exists
+- Too many rollback snapshots (>50)
+- Package database loaded
+- Koala script executable permissions
+
+**Auto-fixes available:**
+- Installs Homebrew if missing
+- Creates missing directories
+- Creates default config file
+- Fixes script permissions
+
+### Clean Up Old Snapshots
+
+```bash
+# Preview what would be deleted (keeps most recent 10)
+./koala cleanup --dry-run
+
+# Clean up, keeping most recent 10 snapshots
+./koala cleanup
+
+# Clean up, keeping most recent 20 snapshots
+./koala cleanup --keep 20
+```
+
+**What happens:**
+- Sorts snapshots by timestamp
+- Keeps the N most recent snapshots
+- Deletes older snapshots
+- Frees up disk space
+
+### Force Reinstall Packages
+
+```bash
+# Reinstall a package even if already installed
+./koala install git --force
+
+# Reinstall multiple packages
+./koala install git docker --force
+
+# Test reinstall (dry-run)
+./koala install python --force --dry-run
+```
+
+**When to use:**
+- Package is corrupted
+- Need to reset package configuration
+- Testing installation process
+- Downgrade not working properly
+
 ## Plugin Usage Examples
 
 ### Installation Logger Plugin
