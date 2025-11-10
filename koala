@@ -54,7 +54,7 @@ class KoalasCLI:
         self.rollback_manager = RollbackManager()
         self.cloud_sync = CloudSyncManager()
         self.installer = get_installer()
-        self.version = "1.2.0"
+        self.version = "1.2.2"
 
     async def cmd_install(self, apps: List[str], yes: bool = False, dry_run: bool = False):
         """Install applications"""
