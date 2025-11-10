@@ -1,6 +1,6 @@
 # 🐨 Koala's Forge - Project Summary
 
-**Version:** 1.3.0
+**Version:** 1.4.0
 **Status:** Production Ready
 **Repository:** https://github.com/mykolas-perevicius/koalas-forge
 
@@ -16,9 +16,10 @@ Koala's Forge is a comprehensive, production-ready package management system fea
 - **Safety Features** - Rollback system with lightweight snapshots
 - **Cloud Sync** - Cross-device configuration management
 - **Real Installation** - Actually installs via brew/apt/winget/choco
-- **⚡ NEW: Parallel Installs** - Install multiple packages concurrently
-- **⚡ NEW: Health Check** - Verify system dependencies
-- **⚡ NEW: Configuration** - User preferences via config file
+- **⚡ Parallel-by-Default** - Install multiple packages concurrently with auto-fallback
+- **⚡ Health Check** - Verify system dependencies
+- **⚡ Configuration** - User preferences via config file
+- **🎉 250+ Applications** - Massive package database expansion
 
 ---
 
@@ -135,15 +136,16 @@ Koala's Forge is a comprehensive, production-ready package management system fea
 - **Documentation:** 3 comprehensive guides
 
 ### Features
-- **20** CLI commands (16 → 20: +health, +config show/get/set/init)
-- **100+** packages in database
+- **20** CLI commands (full-featured CLI suite)
+- **250+** packages in database (58 → 253: 4.4x expansion!)
 - **14** package categories
 - **5** built-in presets
 - **4** active plugins
 - **20+** event types
 - **3** example package lists
-- **⚡ Parallel installations** - NEW in v1.3.0
-- **⚙️ Configuration system** - NEW in v1.3.0
+- **⚡ Parallel-by-default** - NEW in v1.4.0 (with auto-fallback)
+- **⚙️ Configuration system** - v1.3.0
+- **🏥 Health check** - v1.3.0
 
 ### Git Activity
 - **13** total commits
@@ -271,6 +273,7 @@ koalas-forge/
 - **v1.2.1** - Real installation + full CLI commands
 - **v1.2.2** - 6 new commands + preset system + examples
 - **v1.3.0** - ⚡ Parallel installations, health check, configuration system, command aliases
+- **v1.4.0** - 🎉 THE MEGA RELEASE: Parallel-by-default, auto-fallback, 250+ apps (4.4x expansion!)
 
 ---
 
